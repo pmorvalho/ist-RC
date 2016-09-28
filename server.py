@@ -3,36 +3,46 @@
 #Server
 
 
-import socket	
-
-address = socket.gethostname()
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+import socket
 
 
 
 
-server.bind((address,50000))
+class socketServer:
+	
+	def __init__(self, port):
+		self.host = socket.gethostname()
+		self.port = port
+		self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		#self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+		self.server.bind((self.host, self.port))
+
+	def listen(self, n):
+		(self.server).listen(n)
+
+	def contact(self):
+		c, addr = self.server.accept()
+
+		print 'Got connection from', addr
+
+		print c.recv(400)
+
+		c.send('Thank you for connecting')
+
+		c.close()
+
+	def terminateConnection(self):
+		self.server.close()
 
 
 
-server.listen(5)
 
-c, addr = server.accept()
-
+s = socketServer(50000)
 
 
-print 'Got connection from', addr
-print c.recv(400)
+s.listen(5)
 
 
-c.send('Thank you for your connection :)   (.)(.)  (.)|(.)  (.)\(.)  (.)|(.)   (.)/(.) <3')
+s.contact()
 
-
-
-
-
-c.close()
-
-
-
-server.close()
+s.terminateConnection()

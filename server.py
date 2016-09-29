@@ -39,7 +39,7 @@ class socketServer:
 
 s = socketServer(50000)
 
-
+print socket.gethostname()
 s.listen(5)
 
 

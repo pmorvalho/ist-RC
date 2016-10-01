@@ -10,25 +10,34 @@ class socketServer:
 	def __init__(self, port):
 		self.host = socket.gethostname()
 		self.port = port
-		self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		self.server.bind((self.host, self.port))
 
-	def listen(self, n):
-		(self.server).listen(n)
-
 	def contact(self):
-		c, addr = self.server.accept()
-
-		print 'Got connection from', addr
-
-		msg = c.recv(400)
+		msg, addr = self.server.recvfrom(1024)
 
 		print msg
 
-		c.send('Thank you for connecting')
+		if (msg[:3] == "ULQ"):
+			#TODO: correr ficheiro com as linguagens
+			self.server.sendto('ULR 2 Puta Coco\n', addr)
 
-		c.close()
+		if (msg[:3] == "UNQ"):
+			#TODO: com o nome da linguagem, ir ao fich buscar ip e port do TRS respetivo
+			print "UNR"
+			self.server.sendto('UNR ipTRS portTRS\n', addr)
+
+		if (msg[:3] == "SRG"):
+			#TODO: registar no fich TRS novo de uma nova linguagem
+			self.server.sendto('SRR status\n', addr)
+
+		if (msg[:3] == "SUN"):
+			#TODO: remove do fich um TRS de uma certa linguagem
+			self.server.sendto('SUR status\n', addr)
+
+		print "Vai printar addr"
+		print addr
 
 	def terminateConnection(self):
 		self.server.close()
@@ -40,9 +49,8 @@ else:
 	s = socketServer(58052)
 
 print socket.gethostname()
-s.listen(5)
 
-
-s.contact()
+while(1):
+	s.contact()
 
 s.terminateConnection()

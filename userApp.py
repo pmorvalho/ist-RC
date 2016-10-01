@@ -26,7 +26,7 @@ elif (len(sys.argv) == 5):
       host = sys.argv[4]
 
 else:
-  host = "localhost"
+  host = socket.gethostname()
   port = 58052
 
 #print host

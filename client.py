@@ -1,13 +1,13 @@
 #!bin/usr/python
 
-#Client 
+#Client
 
 import socket
 import sys
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-host = "tejo"
+host = "tejo.ist.utl.pt"
 
 port = 58011
 
@@ -43,16 +43,40 @@ while(1):
     languages = rep[2:-1] + [rep[-1][:-1]]
 
   if (command[:7] == "request"):
-    print languages
     rep = command.split(" ")
-    print "Pedido bla " + rep[1] + "\n"
+    lang = eval(rep[1]) - 1
+
+    msg = "UNQ " + languages[lang] + "\n"
+    print msg
+
+    s.sendto(msg, address)
+
+    d = s.recvfrom(1024)
+    reply = d[0]
+
+    rep = reply.split(" ")
+
+    ipTRS = rep[1]
+    portTRS = eval(rep[2])
+    hostTRS = socket.gethostbyaddr(ipTRS)[0]
+    addressTRS = (socket.gethostbyname("194.210.231.23"),50000)
+
+    print addressTRS
+
+    #print "IP: " + portTRS + " Port: " + ipTRS
+
+    socketTRS = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    socketTRS.connect(addressTRS)
+
+    socketTRS.send("Hello bby")
+
+    print socketTRS.recv(200)
+
+    socketTRS.close()
     
   if (command == "exit"):
     sys.exit("Volte em breve!")
 
 s.close()
 
-
-
-
-	

@@ -99,8 +99,7 @@ while(1):
       break
 
     if (comm[2] == "f"):
-      print coco
-      #quesefodavidalocafazemosaseguir
+      print "#quesafodavidalocafazemosaseguir"
 
     socketTRS.send(msg)
 

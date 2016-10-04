@@ -5,7 +5,7 @@
 
 import socket
 
-class socketServer:
+class socketTCP:
 	
 	def __init__(self, port):
 		self.host = socket.gethostname()
@@ -13,6 +13,8 @@ class socketServer:
 		self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		self.server.bind((self.host, self.port))
+
+
 
 	def listen(self, n):
 		(self.server).listen(n)
@@ -32,13 +34,43 @@ class socketServer:
 		self.server.close()
 
 
+class socketUDP:
+	
+	def __init__(self, host, port, language):
+		self.hostTCS = host
+		self.port = port
+		self.language = language
+		self.server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+	def register(self, portTCP):
+		msg = "SRG " + self.language + " " + socket.gethostbyname(socket.gethostname()) + " " + str(portTCP) + "\n"
+
+		self.server.sendto(msg, (socket.gethostname(),self.port))
+
+	def contact(self):
+		msg, addr = self.server.recvfrom(1024)
+
+		print msg
+
+		#ALTERAR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-s = socketServer(60000)
+
+		print "Vai printar addr"
+		print addr
+
+	def terminateConnection(self):
+		self.server.close()
+
+
+
+
+s = socketUDP(socket.gethostname(),58052,"Frances")
+
+s.register(80000);
 
 print socket.gethostname()
-s.listen(5)
-
 
 s.contact()
 

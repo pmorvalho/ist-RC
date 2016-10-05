@@ -56,38 +56,40 @@ while(1):
     addr = d[1]
     
     rep = reply.split(" ")
-    
-    for i in range(eval(rep[1])):
-      print str(i+1) + " - " + rep[i+2]
-      
-    languages = rep[2:-1] + [rep[-1][:-1]]
+
+    #caso nao haja linguagens disponiveis
+    if ( eval(rep[1]) == 0 ):
+      print "Nao ha linguagens disponiveis"
+    else:
+      for i in range(eval(rep[1])):
+        print str(i+1) + " - " + rep[i+2]
+        
+      languages = rep[2:-1] + [rep[-1][:-1]]
 
   if (command[:7] == "request"):
     comm = command.split(" ")
     lang = eval(comm[1]) - 1
 
     msg = "UNQ " + languages[lang] + "\n"
-    print msg
 
     s.sendto(msg, address)
 
     d = s.recvfrom(1024)
     reply = d[0]
 
+    print d
+
     rep = reply.split(" ")
 
     ipTRS = rep[1]
     portTRS = eval(rep[2])
-    hostTRS = socket.gethostbyaddr(ipTRS)[0]
-    addressTRS = (hostTRS,portTRS)
+    #hostTRS = socket.gethostbyaddr(ipTRS)[0]
+    #addressTRS = (hostTRS,portTRS)
 
-    print addressTRS
+    print "Cenas maradas a acontecer: "
+    #print addressTRS
 
     #print "IP: " + portTRS + " Port: " + ipTRS
-
-    socketTRS = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    #socketTRS.connect(addressTRS)
 
     if (comm[2] == "t"):
       nWords = len(comm[3:])
@@ -100,6 +102,10 @@ while(1):
 
     if (comm[2] == "f"):
       print "#quesafodavidalocafazemosaseguir"
+
+    socketTRS = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    socketTRS.connect(addressTRS)
 
     socketTRS.send(msg)
 

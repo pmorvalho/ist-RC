@@ -75,27 +75,27 @@ class socketServer:
 
 			for i in range(len(languages)):
 				if languages[i][0] == message[1]:
-					print "NOK"
+					print "SRG_ERROR: error registrating TRS service"
 					self.server.sendto('SRR NOK\n', addr)
 					return
 			#adds the TRS that wants to register to the list of languages active
 			languages += [(message[1],message[2],eval(message[3]))]
-			print "OK"
+			print "Successfully registrated TRS service: " + message[1] + "\n"
 			self.server.sendto('SRR OK\n', addr)
 
 		if (msg[:3] == "SUN"):
 			#TODO: remove do fich um TRS de uma certa linguagem
 			status_SUN = ""
 			if(len(message) != 4): #verificar mensagens corruptas
-				print "error in message SUN from TRS"
+				print "SUN_ERROR: message sent is corrupted"
 			TRS_lang = (message[1], message[2], eval(message[3]))
 			if(TRS_lang in languages):
 				languages.remove(TRS_lang)
 				status_SUN = "OK\n"
-				print "OK\n"
+				print "Successfully removed TRS service: " + message[1]
 			else:
 				status_SUN = "NOK\n"
-				print "ONK\n"
+				print "SUN_WARNING: TRS service not removed: " + message[1]
 
 			self.server.sendto('SUR ' + status_SUN, addr)
 

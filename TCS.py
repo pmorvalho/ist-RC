@@ -15,6 +15,7 @@ class socketServer:
 		self.server.bind((self.host, self.port))
 
 	def contact(self, languages):
+		print "Waiting for contact from someone"
 		msg, addr = self.server.recvfrom(1024)
 
 		message = msg.split(" ")

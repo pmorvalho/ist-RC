@@ -18,17 +18,53 @@ class socketServer:
 		msg, addr = self.server.recvfrom(1024)
 
 		message = msg.split(" ")
-
-		print msg
+		print "Just received messaged: from IP:" + addr[0] + ' from Port:' + str(addr[1])
+		print "Message received: " + msg
 
 		if (msg[:3] == "ULQ"):
-			#TODO: correr ficheiro com as linguagens e manda-las ao user
-			self.server.sendto('ULR 2 Puta Coco\n', addr)
+			try:
+				if(len(languages) == 0):
+					self.server.sendto("ULR EOF\n", addr)
+					print "ERROR_ULR: there are no TRS services available"
 
+
+				if(len(message) > 1):
+					self.server.sendto("ULR ERR\n", addr)
+					print "ERROR_ULR: messsage format corrupted"
+
+			#TODO: correr ficheiro com as linguagens e manda-las ao user
+			finally:
+
+				msg_lang = "ULR " + str(len(languages)) + " "
+
+				for i in range(len(languages)):
+					msg_lang += languages[i][0] + " "
+
+				print "Message sent to user: " + msg_lang + "\n"
+				self.server.sendto(msg_lang + "\n", addr)
+
+
+		#UNQ request for TRS address
 		if (msg[:3] == "UNQ"):
 			#TODO: com o nome da linguagem, ir ao fich buscar ip e port do TRS respetivo
-			print "UNR"
-			self.server.sendto('UNR ipTRS portTRS\n', addr)
+			try:
+				if(len(message) != 2):
+					print "ERROR_UNQ: message sent from user is corrupted"
+					self.server.sendto('UNR ERR\n', addr)
+			finally: #TODO: test this chunk of code
+				TRS_lang = message[1]
+				for i in range(len(languages)):
+					if(languages[i][0] == TRS_lang):
+						break;
+				if(i == len(languages)):
+					print "ERROR_UNQ: invalid language name"
+					self.server.sendto('UNR EOF\n', addr)
+				else:
+					TRS_ip = languages[i][1]
+					TRS_port = languages[i][2]
+
+					print "User app wants to connect to the following TRS: " + languages[i][0]
+					self.server.sendto('UNR ' + TRS_ip + ' ' + str(TRS_port) + '\n', addr)
 
 		if (msg[:3] == "SRG"):
 			#TODO: registar no fich TRS novo de uma nova linguagem
@@ -41,6 +77,7 @@ class socketServer:
 					print "NOK"
 					self.server.sendto('SRR NOK\n', addr)
 					return
+			#adds the TRS that wants to register to the list of languages active
 			languages += [(message[1],message[2],eval(message[3]))]
 			print "OK"
 			self.server.sendto('SRR OK\n', addr)
@@ -61,27 +98,57 @@ class socketServer:
 
 			self.server.sendto('SUR ' + status_SUN, addr)
 
-		print "Vai printar addr"
-		print addr
 
+	def updateLanguages(self, file, languages):
+		lang_f = open("languages.txt", "w")
+		print "Languages being added to languages.txt"
+		print "Number of languages being written to the languages.txt file: " + str(len(languages))
+		for i in range(len(languages)):
+			print "Adding language: " + languages[i][0]
+			lang_f.write(languages[i][0] + ' ' + languages[i][1] + ' ' + str(languages[i][2]) + '\n')
+		lang_f.close()
+	
 	def terminateConnection(self):
 		self.server.close()
+		print "TCS Turning off -- System Exit"
+		sys.exit(0)
 
 lang_f = open("languages.txt", "a+")
 
+fileLang_lines = lang_f.readlines()
+
 langs = []
 
-if (len(sys.argv) == 3):
-	s = socketServer(eval(sys.argv[2]))
+for i in range(len(fileLang_lines)):
+	file_line = fileLang_lines[i].split(" ")
+	langs += [(file_line[0], file_line[1], eval(file_line[2]))]
 
-else:
-	s = socketServer(58052)
+print "Number of languages: " + str(len(langs))
+try:
+	if (len(sys.argv) == 3):
+		s = socketServer(eval(sys.argv[2]))
 
-#estar a prova de erros!!
+	else:
+		s = socketServer(58052)
 
-print socket.gethostname()
+	#estar a prova de erros!!
 
-while(1):
-	s.contact(langs)
+	print socket.gethostname()
 
-s.terminateConnection()
+	while(1):
+		s.contact(langs)
+
+	s.updateLanguages(lang_f, langs)
+	s.terminateConnection()
+
+except KeyboardInterrupt:
+	print '\n'
+	print 'KeyboardInterrupt found --- treating Control-C interruption'
+	s.updateLanguages(lang_f, langs)
+	s.terminateConnection()
+
+
+#Italiano 123.345.566. 50000
+#Alemao 123.345.566. 50000
+#Ingles 123.345.566. 50000
+#Frances 123.345.566. 50000

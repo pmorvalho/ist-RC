@@ -78,10 +78,8 @@ class socketUDP:
 	def getServer(self):
 		return self.server
 
-	def sendMSG(self, msg):
-		self.server.sendto()
 
-print "Inicio"
+# Input
 
 if (len(sys.argv) == 8):
 	port = sys.argv[3]
@@ -95,14 +93,14 @@ elif (len(sys.argv) == 6):
 			portTCS = 58052
 		elif (sys.argv[4] == "-e"):
 			portTCS = sys.argv[5]
-			hostTCS = 'localhost'
+			hostTCS = socket.gethostname()
 	elif (sys.argv[2] == "-n"):
 		hostTCS = sys.argv[3]
 		portTCS = sys.argv[5]
 		port = 59000
 elif (len(sys.argv) == 4):
 	if (sys.argv[2] == "-p"):
-		hostTCS = 'localhost'
+		hostTCS = socket.gethostname()
 		portTCS = 58052
 		port = eval(sys.argv[3])
 	elif (sys.argv[2] == "-n"):
@@ -112,10 +110,10 @@ elif (len(sys.argv) == 4):
 	elif (sys.argv[2] == "-e"):
 		portTCS = sys.argv[3]
 		port = 59000
-		hostTCS = 'localhost'
+		hostTCS = socket.gethostname()
 else:
 	port = 59000
-	hostTCS = 'localhost'
+	hostTCS = socket.gethostname()
 	portTCS = 58052
 
 sockUdp = socketUDP(socket.gethostname(), portTCS, sys.argv[1])

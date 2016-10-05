@@ -52,6 +52,14 @@ class socketUDP:
 
 		self.server.sendto(msg, addressTCS)
 
+		print "Waiting for registration confirmation from TCS..."
+
+		reply = self.server.recvfrom(1024)
+
+		if (reply[0] == "SRR NOK\n"):
+			print "Cannot register. Exiting..."
+			sys.exit()
+
 	def contact(self):
 		msg, addr = self.server.recvfrom(1024)
 
@@ -70,37 +78,39 @@ class socketUDP:
 	def getServer(self):
 		return self.server
 
+	def sendMSG(self, msg):
+		self.server.sendto()
+
 print "Inicio"
 
-if (len(sys.argv) == 7):
-	port = sys.argv[2]
-	hostTCS = sys.argv[4]
-	portTCS = sys.argv[6]
-elif (len(sys.argv) == 5):
-	if (sys.argv[1] == "-p"):
-		port = sys.argv[2]
-		if (sys.argv[3] == "-n"):
-			hostTCS = sys.argv[4]
+if (len(sys.argv) == 8):
+	port = sys.argv[3]
+	hostTCS = sys.argv[5]
+	portTCS = sys.argv[7]
+elif (len(sys.argv) == 6):
+	if (sys.argv[2] == "-p"):
+		port = sys.argv[3]
+		if (sys.argv[4] == "-n"):
+			hostTCS = sys.argv[5]
 			portTCS = 58052
-		elif (sys.argv[3] == "-e"):
-			portTCS = sys.argv[4]
+		elif (sys.argv[4] == "-e"):
+			portTCS = sys.argv[5]
 			hostTCS = 'localhost'
-	elif (sys.argv[1] == "-n"):
-		hostTCS = sys.argv[2]
-		portTCS = sys.argv[4]
+	elif (sys.argv[2] == "-n"):
+		hostTCS = sys.argv[3]
+		portTCS = sys.argv[5]
 		port = 59000
-elif (len(sys.argv) == 3):
-	if (sys.argv[1] == "-p"):
-		print "puta"
+elif (len(sys.argv) == 4):
+	if (sys.argv[2] == "-p"):
 		hostTCS = 'localhost'
 		portTCS = 58052
-		port = eval(sys.argv[2])
-	elif (sys.argv[1] == "-n"):
-		hostTCS = sys.argv[2]
+		port = eval(sys.argv[3])
+	elif (sys.argv[2] == "-n"):
+		hostTCS = sys.argv[3]
 		port = 59000
 		portTCS = 58052
-	elif (sys.argv[1] == "-e"):
-		portTCS = sys.argv[2]
+	elif (sys.argv[2] == "-e"):
+		portTCS = sys.argv[3]
 		port = 59000
 		hostTCS = 'localhost'
 else:
@@ -108,7 +118,7 @@ else:
 	hostTCS = 'localhost'
 	portTCS = 58052
 
-sockUdp = socketUDP(socket.gethostname(), port, sys.argv[0])
+sockUdp = socketUDP(socket.gethostname(), portTCS, sys.argv[1])
 
 # sockTCP = socketTCP(port)
 
@@ -118,7 +128,9 @@ sockUdp.register(portTCS);
 while(1):
 
 	command = raw_input("Command: ")
-	# 
+
+	print command
+
 	# if (command == "SRG"):
 	#
 	# 	msg = "SRG Frances 100.00.02.3 59000\n"
@@ -127,13 +139,14 @@ while(1):
 	#
 	# 	print sockUdp.getServer().recvfrom(1024)
 
-	if (command == "SUN"):
-
+	if (command == "SUN"): #SUN language IP port
 		msg = "SUN Frances 100.00.02.3 59000\n"
 
-    	sockUdp.getServer().sendto(msg, (hostTCS, portTCS))
+		sockUdp.getServer().sendto(msg, (socket.gethostname(), portTCS))
 
-    	print sockUdp.getServer().recvfrom(1024)
+		print "Enviou"
+
+		print sockUdp.getServer().recvfrom(1024)
 
   	if (command == "exit"):
 

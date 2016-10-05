@@ -77,19 +77,26 @@ while(1):
     d = s.recvfrom(1024)
     reply = d[0]
 
-    print d
-
     rep = reply.split(" ")
 
+    if ( rep[0] != "UNR" ):
+      print "Algo esta mal..."
+
     ipTRS = rep[1]
-    portTRS = eval(rep[2])
+    #portTRS = eval(rep[2])
     #hostTRS = socket.gethostbyaddr(ipTRS)[0]
     #addressTRS = (hostTRS,portTRS)
+    addressTRS = (socket.gethostname(),59000) #LALALALALALALALALALALALALLALALALALALALALALALLALALA
 
     print "Cenas maradas a acontecer: "
+
     #print addressTRS
 
     #print "IP: " + portTRS + " Port: " + ipTRS
+
+    socketTRS = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    socketTRS.connect(addressTRS)
 
     if (comm[2] == "t"):
       nWords = len(comm[3:])
@@ -97,26 +104,23 @@ while(1):
       for i in range(nWords):
         msg += " " + comm[3:][i]
       msg += "\n"
-      print msg
-      break
+      print "Texto a traduzir: " + msg
+      socketTRS.send(msg)
+
+      msg = socketTRS.recv(1024)
+
+      msg = msg.split(" ")
+
+      translation = ""
+
+      for i in range(len(msg[3:])):
+        translation += msg[3:][i]
+
+      print translation
 
     if (comm[2] == "f"):
-      print "#quesafodavidalocafazemosaseguir"
-
-    socketTRS = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    socketTRS.connect(addressTRS)
-
-    socketTRS.send(msg)
-
-    msg = socketTRS.recv(1024)
-
-    msg = msg.split(" ")
-
-    for i in range(len(msg[3:])):
-      translation += msg[3:][i]
-
-    print translation
+      msg = "TRQ f " + comm[3] + " " + "size" + " " + "data" + "\n"
+      print msg
 
     socketTRS.close()
     
@@ -124,4 +128,3 @@ while(1):
     sys.exit("Volte em breve!")
 
 s.close()
-

@@ -46,8 +46,11 @@ class socketUDP:
 
 	def register(self, portTCP):
 		msg = "SRG " + self.language + " " + socket.gethostbyname(socket.gethostname()) + " " + str(portTCP) + "\n"
+		addressTCS = (socket.gethostbyname(socket.gethostname()), self.port)
+		print "Registation on TCS being sent: "
+		print addressTCS
 
-		self.server.sendto(msg, (socket.gethostname(),self.port))
+		self.server.sendto(msg, addressTCS)
 
 	def contact(self):
 		msg, addr = self.server.recvfrom(1024)

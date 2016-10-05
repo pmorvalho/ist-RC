@@ -118,7 +118,7 @@ else:
 
 sockUdp = socketUDP(socket.gethostname(), portTCS, sys.argv[1])
 
-# sockTCP = socketTCP(port)
+sockTCP = socketTCP(port)
 
 sockUdp.register(portTCS);
 

@@ -83,14 +83,14 @@ while(1):
       print "Algo esta mal..."
 
     ipTRS = rep[1]
-    #portTRS = eval(rep[2])
-    #hostTRS = socket.gethostbyaddr(ipTRS)[0]
-    #addressTRS = (hostTRS,portTRS)
-    addressTRS = (socket.gethostname(),59000) #LALALALALALALALALALALALALLALALALALALALALALALLALALA
+    portTRS = eval(rep[2])
+    hostTRS = socket.gethostbyaddr(ipTRS)[0]
+    addressTRS = (hostTRS,portTRS)
+    #addressTRS = (socket.gethostname(),59000) #LALALALALALALALALALALALALLALALALALALALALALALLALALA
 
     print "Cenas maradas a acontecer: "
 
-    #print addressTRS
+    print addressTRS
 
     #print "IP: " + portTRS + " Port: " + ipTRS
 

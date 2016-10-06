@@ -5,6 +5,8 @@
 
 import socket
 import sys
+import os
+import math
 
 class socketTCP:
 
@@ -18,7 +20,7 @@ class socketTCP:
 	def listen(self, n):
 		(self.server).listen(n)
 
-	def translate_and_send(self, dictionary):
+	def translate_and_send(self, word_dictionary, file_dictionary):
 		c, addr = self.server.accept()
 
 		print 'Got connection from ', addr
@@ -52,36 +54,87 @@ class socketTCP:
 			translation = "TRR t " + str(noWords)
 
 			for i in range(noWords):
-				if (to_translate[i] not in dictionary):
+				if (to_translate[i] not in word_dictionary):
 					translation = "TRR NTA"
 					break
 				else:
-					translation += " " + dictionary[to_translate[i]]
+					translation += " " + word_dictionary[to_translate[i]]
 			translation += "\n"
 
 			print translation
+			c.send(translation)
 			
 		elif ( to_translate == " f " ):
-		  
+
+			byte = c.recv(1)
+			filename = ""
+
+			while (byte != " "):
+				filename += byte
+				byte = c.recv(1)
+
+			print "Filename: " , filename
+
+			byte = c.recv(1)
+			filesize = ""
+
+			while (byte != " "):
+				filesize += byte
+				byte = c.recv(1)
+
+			print "File size: " , filesize
+
+			filesize = eval(filesize)
+
 			recv_file = open("data","wb+")
-			
-			data, addr = c.recvfrom(1024)
+
+			packs_no = filesize / 256
+
+			if ( (filesize % 256) != 0 ):
+				packs_no += 1
+
+			print packs_no
+
+			for i in range(packs_no):
+				data = c.recv(256)
+				recv_file.write(data)
 
 			print type(data)
 			
-			while(data):
-				recv_file.write(data)
-				data, addr = c.recvfrom(1024)
-			
 			recv_file.close()
+
+			print "User file received"
+
+			#devolver ficheiro com traducao
+
+			msg = "TRR f " + file_dictionary[filename] + " " + str(os.stat(file_dictionary[filename]).st_size) + " "
 			
-			translation = "Success\n"
-		
+			c.send(msg)
+
+			#enviar ficheiro
+			print "Sending file to client..."
+			  	
+			file_to_trl = open(file_dictionary[filename],"rb")
+			
+			#########################################
+			print "Sending file to client..."
+			data = file_to_trl.read(256)
+
+			while (data):
+				c.send(data)
+				data = file_to_trl.read(256)
+
+			file_to_trl.close()
+	      	
+			c.send("\n")
+
+			print "File sent to client"
+	        #########################################
+
 		else:
 			print "Invalid translation request"
 			translation = "TRR ERR\n"
-
-		c.send(translation)
+			c.send(translation)
 
 		c.close()
 
@@ -129,11 +182,25 @@ class socketUDP:
 		print "Vai printar addr"
 		print addr
 
-	def terminateConnection(self):
-		self.server.close()
+	def terminateConnection(self, portTCP):
+		msg = "SUN " + self.language + " " + socket.gethostbyname(socket.gethostname()) + " " + str(portTCP) + "\n"
+		addressTCS = (socket.gethostbyname(socket.gethostname()), self.port)
+		print "Unregistation request being sent: "
+		print addressTCS
 
-	def getServer(self):
-		return self.server
+		self.server.sendto(msg, addressTCS)
+
+		print "Waiting for unregistration confirmation from TCS..."
+
+		reply = self.server.recvfrom(1024)
+
+		if (reply[0] == "SRR NOK\n"):
+			print "Cannot unregister. Exiting..."
+			self.server.close()
+			sys.exit()
+
+		print "TRS successfully unregistered. Exiting..."
+		self.server.close()
 
 
 # Input
@@ -178,7 +245,7 @@ sockUdp = socketUDP(socket.gethostname(), portTCS, sys.argv[1])
 sockUdp.register(port);
 
 # criar dicionario com as palavras do ficheiro
-lang_file = open(sockUdp.language + ".txt","r")
+lang_file = open("text_translation.txt","r")
 
 contentTrans = lang_file.readlines()
 
@@ -188,14 +255,35 @@ for i in range(len(contentTrans)):
 	words_translation += [(line_split[0], line_split[1][:-1])]
 
 words_translation = dict(words_translation)
+lang_file.close()
+#
+
+# criar dicionario com as palavras do ficheiro
+lang_file = open("file_translation.txt","r")
+
+contentTrans = lang_file.readlines()
+
+file_translation = []
+for i in range(len(contentTrans)):
+	line_split = contentTrans[i].split(" ")
+	file_translation += [(line_split[0], line_split[1][:-1])]
+
+file_translation = dict(file_translation)
+lang_file.close()
+
+print file_translation
 #
 
 sockTCP = socketTCP(port)
 
-sockTCP.listen(10)
+sockTCP.listen(5)
 
-while(1):
+try:
+	while(1):
 
-	sockTCP.translate_and_send(words_translation)
+		sockTCP.translate_and_send(words_translation, file_translation)
 
-sockUdp.terminateConnection()
+except KeyboardInterrupt:
+	print '\n'
+	print 'KeyboardInterrupt found --- treating Control-C interruption'
+	sockUdp.terminateConnection(port)

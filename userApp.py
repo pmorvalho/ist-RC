@@ -45,11 +45,11 @@ while(1):
     d = s.recvfrom(1024)
     reply = d[0]
     addr = d[1]
-    
+
     rep = reply.split(" ")
 
-    if ( eval(rep[1]) == 0 ): #caso nao haja linguagens disponiveis
-      print "Nao ha linguagens disponiveis"
+    if ( rep[1] == "EOF\n" ): #caso nao haja linguagens disponiveis
+      print "No languages available"
     else:
       for i in range(eval(rep[1])):
         print str(i+1) + " - " + rep[i+2]
@@ -119,19 +119,79 @@ while(1):
       	msg = "TRQ f " + comm[3] + " " + str(os.stat(comm[3]).st_size) + " "
       	print msg
 
-      	#enviar ficheiro
-      	print "Uploading file to server..."
+        socketTRS.send(msg)
+        
+        #enviar ficheiro
+        print "Uploading file to server..."
+        
+        file_to_trl = open(comm[3],"rb")
       	
-      	file_to_trl = open(comm[3],"rb")
+      	data = file_to_trl.read(256)
+
+        while (data):
+          socketTRS.send(data)
+          data = file_to_trl.read(256)
+
+        file_to_trl.close()
       	
-      	data = file_to_trl.read()
-      	
-      	socketTRS.sendall(msg + data + "\n")
+      	socketTRS.send("\n")
+
+        print "File uploaded"
 
       	#recepcao do ficheiro
-      	print "Downloading file..."
 
-      	print "Download complete"
+        translated = socketTRS.recv(3)
+
+        if ( translated != "TRR"):
+          print "Error receiving file translation"
+          sys.exit()
+        
+        translated = socketTRS.recv(3)
+
+        if (translated != " f "):
+          print "Error in message format"
+          sys.exit()
+
+        #####################################################################
+        byte = socketTRS.recv(1)
+        filename = ""
+
+        while (byte != " "):
+          filename += byte
+          byte = socketTRS.recv(1)
+
+        print "Filename: " , filename
+
+        byte = socketTRS.recv(1)
+        filesize = ""
+
+        while (byte != " "):
+          filesize += byte
+          byte = socketTRS.recv(1)
+
+        print "File size: " , filesize
+
+        print "Downloading file..."
+
+        ################################################################
+        filesize = eval(filesize)
+
+        recv_file = open("translation_" + filename,"wb+")
+
+        packs_no = filesize / 256
+
+        if ( (filesize % 256) != 0 ):
+          packs_no += 1
+
+        print packs_no
+
+        for i in range(packs_no):
+          data = socketTRS.recv(256)
+          recv_file.write(data)
+
+        recv_file.close()
+
+        print "Download complete"
 
       socketTRS.close()
     

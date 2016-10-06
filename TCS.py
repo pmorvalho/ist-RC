@@ -28,13 +28,15 @@ class socketServer:
 				if(len(languages) == 0):
 					self.server.sendto("ULR EOF\n", addr)
 					print "ERROR_ULR: there are no TRS services available"
+					return
+
 
 
 				if(len(message) > 1):
 					self.server.sendto("ULR ERR\n", addr)
 					print "ERROR_ULR: messsage format corrupted"
+					return
 
-			#TODO: correr ficheiro com as linguagens e manda-las ao user
 			finally:
 
 				msg_lang = "ULR " + str(len(languages))
@@ -53,6 +55,9 @@ class socketServer:
 				if(len(message) != 2):
 					print "ERROR_UNQ: message sent from user is corrupted"
 					self.server.sendto('UNR ERR\n', addr)
+					return
+
+
 			finally: #TODO: test this chunk of code
 				TRS_lang = message[1]
 				for i in range(len(languages)):
@@ -73,6 +78,7 @@ class socketServer:
 			if(len(message) != 4): #verificar mensagens corruptas
 				print "error in SRG format from TRS"
 				self.server.sendto("SRR ERR\n", addr)
+				return
 
 			for i in range(len(languages)):
 				if languages[i][0] == message[1]:
@@ -89,6 +95,7 @@ class socketServer:
 			status_SUN = ""
 			if(len(message) != 4): #verificar mensagens corruptas
 				print "SUN_ERROR: message sent is corrupted"
+				return
 			TRS_lang = (message[1], message[2], eval(message[3]))
 			if(TRS_lang in languages):
 				languages.remove(TRS_lang)

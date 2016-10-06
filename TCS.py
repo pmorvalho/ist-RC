@@ -127,7 +127,8 @@ for i in range(len(fileLang_lines)):
 print "Number of languages: " + str(len(langs))
 try:
 	if (len(sys.argv) == 3):
-		s = socketServer(eval(sys.argv[2]))
+
+			s = socketServer(int(sys.argv[2]))
 
 	else:
 		s = socketServer(58052)
@@ -147,6 +148,12 @@ except KeyboardInterrupt:
 	print 'KeyboardInterrupt found --- treating Control-C interruption'
 	s.updateLanguages(lang_f, langs)
 	s.terminateConnection()
+
+except ValueError:
+	print "VALUE_ERROR: Invalid port given"
+	print "PORT_INT: Port must be an integer"
+	print "Exiting"
+
 
 
 #Italiano 123.345.566. 50000

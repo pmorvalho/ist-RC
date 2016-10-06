@@ -16,7 +16,7 @@ class socketServer:
 		self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		self.server.bind((self.host, self.port))
 
-	def contact(self, languages):
+	def contact(self, languages, lnames):
 		print "Waiting for contact from someone"
 
 		msg, addr = self.server.recvfrom(1024)
@@ -55,7 +55,7 @@ class socketServer:
 			msg_lang = "ULR " + str(len(languages))
 
 			for i in range(len(languages)):
-				msg_lang += " " + languages[i][0]
+				msg_lang += " " + lnames[i]
 
 			print "Message sent to user: " + msg_lang + "\n"
 
@@ -72,7 +72,6 @@ class socketServer:
 
 		#UNQ request for TRS address
 		if (msg[:3] == "UNQ"):
-			#TODO: com o nome da linguagem, ir ao fich buscar ip e port do TRS respetivo
 			if(len(message) != 2):
 				print "ERROR_UNQ: message sent from user is corrupted"
 				try:
@@ -85,11 +84,11 @@ class socketServer:
 						print senderror
 						return
 
-			TRS_lang = message[1]
-			for i in range(len(languages)):
-				if(languages[i][0] == TRS_lang):
-					break;
-			if(i == len(languages)):
+			TRS_lang = message[1][:-1]
+			
+			try:
+				TRS_info = languages[TRS_lang]
+			except:
 				print "ERROR_UNQ: invalid language name"
 				try:
 					self.server.sendto('UNR EOF\n', addr)
@@ -100,20 +99,20 @@ class socketServer:
 						print "SOCKET_ERROR: Error sending message to client: UNR EOF"
 						print senderror
 						return
-			else:
-				TRS_ip = languages[i][1]
-				TRS_port = languages[i][2]
 
-				print "User app wants to connect to the following TRS: " + languages[i][0]
-				try:
-					self.server.sendto('UNR ' + TRS_ip + ' ' + str(TRS_port) + '\n', addr)
+			TRS_ip = TRS_info[0]
+			TRS_port = TRS_info[1]
 
-				except socket.error as senderror:
-						if(senderror.errno != errno.ECONNREFUSED):
-							raise senderror
-						print "SOCKET_ERROR: Error sending message to client: UNR"
-						print senderror
-						return
+			print "User app wants to connect to the following TRS - Language: " , TRS_lang , " IP: " , TRS_ip , " Port: " , TRS_port
+			try:
+				self.server.sendto('UNR ' + TRS_ip + ' ' + str(TRS_port) + '\n', addr)
+
+			except socket.error as senderror:
+					if(senderror.errno != errno.ECONNREFUSED):
+						raise senderror
+					print "SOCKET_ERROR: Error sending message to client: UNR"
+					print senderror
+					return
 
 		if (msg[:3] == "SRG"):
 			#TODO: registar no fich TRS novo de uma nova linguagem
@@ -129,22 +128,22 @@ class socketServer:
 						print senderror
 						return
 
-
-				for i in range(len(languages)):
-					if languages[i][0] == message[1]:
-						try:
-							print "SRG_ERROR: error registrating TRS service"
-							self.server.sendto('SRR NOK\n', addr)
-							return
-						except socket.error as senderror:
-							if(senderror.errno != errno.ECONNREFUSED):
-								raise senderror
-							print "SOCKET_ERROR: Error sending message to TRS server: SRR NOK"
-							print senderror
-							return
+				if (message[1] in lnames):
+					try:
+						print "SRG_ERROR: error registrating TRS service"
+						self.server.sendto('SRR NOK\n', addr)
+						return
+					except socket.error as senderror:
+						if(senderror.errno != errno.ECONNREFUSED):
+							raise senderror
+						print "SOCKET_ERROR: Error sending message to TRS server: SRR NOK"
+						print senderror
+						return
 
 				#adds the TRS that wants to register to the list of languages active
-				languages += [(message[1],message[2],eval(message[3]))]
+				languages[message[1]] = (message[2],eval(message[3]))
+				lnames += [message[1]]
+				print languages[message[1]]
 				print "Successfully registrated TRS service: " + message[1] + "\n"
 				try:
 					self.server.sendto('SRR OK\n', addr)
@@ -158,15 +157,15 @@ class socketServer:
 
 
 		if (msg[:3] == "SUN"):
-			#TODO: remove do fich um TRS de uma certa linguagem
-			status_SUN = ""
+			# remove do fich um TRS de uma certa linguagem
+			TRS_lang = message[1]
 			if(len(message) != 4): #verificar mensagens corruptas
 				print "SUN_ERROR: message sent is corrupted"
 				return
 			try:
-				TRS_lang = (message[1], message[2], eval(message[3]))
-				if(TRS_lang in languages):
-					languages.remove(TRS_lang)
+				if (languages[TRS_lang] == (message[2], eval(message[3]))):
+					lnames.remove(TRS_lang)
+					languages.pop(TRS_lang)
 					status_SUN = "OK\n"
 					print "Successfully removed TRS service: " + message[1]
 				else:
@@ -187,13 +186,14 @@ class socketServer:
 
 
 	#Updates the file languages.txt as the execution may have changed the languages registred
-	def updateLanguages(self, file, languages):
+	def updateLanguages(self, file, languages, lnames):
 		lang_f = open("languages.txt", "w")
 		print "Languages being added to languages.txt"
 		print "Number of languages being written to the languages.txt file: " + str(len(languages))
 		for i in range(len(languages)):
-			print "Adding language: " + languages[i][0]
-			lang_f.write(languages[i][0] + ' ' + languages[i][1] + ' ' + str(languages[i][2]) + '\n')
+			lang = lnames[i]
+			print "Adding language: " + lang
+			lang_f.write(lang + ' ' + languages[lang][0] + ' ' + str(languages[lang][1]) + '\n')
 		lang_f.close()
 	
 	def terminateConnection(self):
@@ -204,13 +204,16 @@ lang_f = open("languages.txt", "a+")
 fileLang_lines = lang_f.readlines()
 
 langs = []
+lang_names = []
 
 for i in range(len(fileLang_lines)):
 	file_line = fileLang_lines[i].split(" ")
-	langs += [(file_line[0], file_line[1], eval(file_line[2]))]
+	lang_names += [file_line[0]]
+	langs += [(file_line[0], (file_line[1], eval(file_line[2])))]
+
+langs = dict(langs)
 
 print "Number of languages: " + str(len(langs))
-
 
 try:
 	if (len(sys.argv) == 3):
@@ -227,9 +230,9 @@ try:
 	print socket.gethostname()
 
 	while(1):
-		s.contact(langs)
+		s.contact(langs, lang_names)
 
-	s.updateLanguages(lang_f, langs)
+	s.updateLanguages(lang_f, langs, lang_names)
 	s.terminateConnection()
 
 
@@ -238,7 +241,7 @@ try:
 except KeyboardInterrupt:
 	print '\n'
 	print 'KeyboardInterrupt found --- treating Control-C interruption'
-	s.updateLanguages(lang_f, langs)
+	s.updateLanguages(lang_f, langs, lang_names)
 	s.terminateConnection()
 
 except ValueError:
@@ -260,7 +263,7 @@ finally:
 
 
 
-#Italiano 123.345.566. 50000
-#Alemao 123.345.566. 50000
-#Ingles 123.345.566. 50000
-#Frances 123.345.566. 50000
+# Italiano 123.345.566. 50000
+# Alemao 123.345.566. 50000
+# Ingles 123.345.566. 50000
+# Frances 123.345.566. 50000

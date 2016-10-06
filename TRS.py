@@ -20,7 +20,7 @@ class socketTCP:
 	def listen(self, n):
 		(self.server).listen(n)
 
-	def translate_and_send(self, word_dictionary, file_dictionary):
+	def translate_and_send(self, word_dictionary, file_dictionary, lang):
 		c, addr = self.server.accept()
 
 		print 'Got connection from ', addr
@@ -86,7 +86,7 @@ class socketTCP:
 
 			filesize = eval(filesize)
 
-			recv_file = open("data","wb+")
+			recv_file = open(lang + "/" + filename,"wb+")
 
 			packs_no = filesize / 256
 
@@ -107,14 +107,14 @@ class socketTCP:
 
 			#devolver ficheiro com traducao
 
-			msg = "TRR f " + file_dictionary[filename] + " " + str(os.stat(file_dictionary[filename]).st_size) + " "
-			
+			msg = "TRR f " + file_dictionary[filename] + " " + str(os.stat(lang + "/" + file_dictionary[filename]).st_size) + " "
+
 			c.send(msg)
 
 			#enviar ficheiro
 			print "Sending file to client..."
 			  	
-			file_to_trl = open(file_dictionary[filename],"rb")
+			file_to_trl = open(lang + "/" + file_dictionary[filename],"rb")
 			
 			#########################################
 			print "Sending file to client..."
@@ -312,7 +312,7 @@ try:
 
 	while(1):
 
-		sockTCP.translate_and_send(words_translation, file_translation)
+		sockTCP.translate_and_send(words_translation, file_translation, sockUdp.language)
 
 except KeyboardInterrupt:
 	print '\n'

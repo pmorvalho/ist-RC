@@ -36,10 +36,10 @@ class socketServer:
 			#TODO: correr ficheiro com as linguagens e manda-las ao user
 			finally:
 
-				msg_lang = "ULR " + str(len(languages)) + " "
+				msg_lang = "ULR " + str(len(languages))
 
 				for i in range(len(languages)):
-					msg_lang += languages[i][0] + " "
+					msg_lang += " " + languages[i][0]
 
 				print "Message sent to user: " + msg_lang + "\n"
 				self.server.sendto(msg_lang + "\n", addr)

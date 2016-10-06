@@ -59,66 +59,79 @@ while(1):
   if (command[:7] == "request"):
     comm = command.split(" ")
     lang = eval(comm[1]) - 1
-
-    msg = "UNQ " + languages[lang] + "\n"
-
-    s.sendto(msg, address)
-
-    d = s.recvfrom(1024)
-    reply = d[0]
-
-    rep = reply.split(" ")
-
-    if ( rep[0] != "UNR" ):
-      print "Algo esta mal..."
-
-    ipTRS = rep[1]
-    portTRS = eval(rep[2])
-    hostTRS = socket.gethostbyaddr(ipTRS)[0]
-    addressTRS = (hostTRS,portTRS)
     
-    socketTRS = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    # try:
-    socketTRS.connect(addressTRS)
-    # except:
-    #   print "Erro na conexao com o TRS"
-    #   exit()
-
-    if (comm[2] == "t"):
-      nWords = len(comm[3:])
-      msg = "TRQ t " + str(nWords)
-      for i in range(nWords):
-        msg += " " + comm[3:][i]
-      msg += "\n"
-      print "Sent to TRS: " + msg
+    if (len(languages) == 0):
+      print "No languages. Try using 'list' first"
       
-      socketTRS.send(msg)
+    elif (lang >= len(languages) or lang < 0):
+      print "Language index not valid"
+      
+    else:
+      msg = "UNQ " + languages[lang] + "\n"
 
-      msg = socketTRS.recv(1024)
+      s.sendto(msg, address)
 
-      msg = msg.split(" ")
+      d = s.recvfrom(1024)
+      reply = d[0]
 
-      translation = ""
+      rep = reply.split(" ")
 
-      for i in range(len(msg[3:])):
-        translation += msg[3:][i] + " "
+      if ( rep[0] != "UNR" ):
+	print "Algo esta mal..."
 
-      print "Translation: " , translation
+      ipTRS = rep[1]
+      portTRS = eval(rep[2])
+      hostTRS = socket.gethostbyaddr(ipTRS)[0]
+      addressTRS = (hostTRS,portTRS)
+      
+      socketTRS = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    if (comm[2] == "f"):
-      msg = "TRQ f " + comm[3] + " " + os.stat(comm[3]).st_size + " " + "data" + "\n"
-      print msg
+      # try:
+      socketTRS.connect(addressTRS)
+      # except:
+      #   print "Erro na conexao com o TRS"
+      #   exit()
 
-      #enviar ficheiro
-      print "Uploading file to server..."
+      if (comm[2] == "t"):
+	nWords = len(comm[3:])
+	msg = "TRQ t " + str(nWords)
+	for i in range(nWords):
+	  msg += " " + comm[3:][i]
+	msg += "\n"
+	print "Sent to TRS: " + msg
+	
+	socketTRS.send(msg)
 
-      #recepcao do ficheiro
-      print "Downloading file..."
+	msg = socketTRS.recv(1024)
 
-      print "Download complete"
+	msg = msg.split(" ")
 
-    socketTRS.close()
+	translation = ""
+
+	for i in range(len(msg[3:])):
+	  translation += msg[3:][i] + " "
+
+	print "Translation: " , translation
+
+      if (comm[2] == "f"):
+	msg = "TRQ f " + comm[3] + " " + str(os.stat(comm[3]).st_size) + " "
+	print msg
+
+	#enviar ficheiro
+	print "Uploading file to server..."
+	
+	file_to_trl = open(comm[3],"rb")
+	
+	data = file_to_trl.read()
+	
+	socketTRS.sendall(data)
+
+	#recepcao do ficheiro
+	print "Downloading file..."
+
+	print "Download complete"
+
+      socketTRS.close()
     
   if (command == "exit"):
     sys.exit("Thank you! Come again")

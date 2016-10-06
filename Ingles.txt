@@ -1,4 +1,4 @@
-ampulheta hourglass
-besta beast
-carro car
-defenestrar defenestrate
+hourglass ampulheta
+beast besta
+car carro
+defenestrate defenestrar

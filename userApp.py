@@ -21,16 +21,16 @@ if (len(sys.argv) == 3):
     host = sys.argv[2]
     port = 58052
   elif (sys.argv[1] == "-p"):
-    port = sys.argv[2]
-    host = "localhost"
+    port = eval(sys.argv[2])
+    host = socket.gethostname()
 
 elif (len(sys.argv) == 5):
   if (sys.argv[1] == "-n"):
     host = sys.argv[2]
     if(sys.argv[3] == "-p"):
-      port = sys.argv[4]
+      port = eval(sys.argv[4])
   elif (sys.argv[1] == "-p"):
-    port = sys.argv[2]
+    port = eval(sys.argv[2])
     if(sys.argv[3] == "-n"):
       host = sys.argv[4]
 

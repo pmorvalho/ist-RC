@@ -5,6 +5,7 @@
 import socket
 import sys
 
+
 class socketServer:
 	
 	def __init__(self, port):
@@ -127,8 +128,10 @@ for i in range(len(fileLang_lines)):
 print "Number of languages: " + str(len(langs))
 try:
 	if (len(sys.argv) == 3):
-
+		if(sys.argv[1] == '-p'):
 			s = socketServer(int(sys.argv[2]))
+		else:
+			raise Exception
 
 	else:
 		s = socketServer(58052)
@@ -153,6 +156,14 @@ except ValueError:
 	print "VALUE_ERROR: Invalid port given"
 	print "PORT_INT: Port must be an integer"
 	print "Exiting"
+	sys.exit(0)
+
+except Exception:
+	print "FORMAT_ERROR: Wrong way to execute this program"
+	print "SOLUTION_EXAMPLE: python TCS.py -p 50000"
+	print "Exiting"
+	sys.exit(0)
+
 
 
 

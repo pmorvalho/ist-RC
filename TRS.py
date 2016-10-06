@@ -306,7 +306,7 @@ try:
 
 	print file_translation
 
-	sockTCP = socketTCP(port)
+	sockTCP = socketTCP(port)	
 
 	sockTCP.listen(5)
 

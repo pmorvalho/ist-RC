@@ -126,6 +126,8 @@ for i in range(len(fileLang_lines)):
 	langs += [(file_line[0], file_line[1], eval(file_line[2]))]
 
 print "Number of languages: " + str(len(langs))
+
+
 try:
 	if (len(sys.argv) == 3):
 		if(sys.argv[1] == '-p'):
@@ -145,6 +147,7 @@ try:
 
 	s.updateLanguages(lang_f, langs)
 	s.terminateConnection()
+
 
 except KeyboardInterrupt:
 	print '\n'

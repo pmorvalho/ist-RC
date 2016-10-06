@@ -37,15 +37,13 @@ class socketServer:
 					print "ERROR_ULR: messsage format corrupted"
 					return
 
-			finally:
+			msg_lang = "ULR " + str(len(languages))
 
-				msg_lang = "ULR " + str(len(languages))
+			for i in range(len(languages)):
+				msg_lang += " " + languages[i][0]
 
-				for i in range(len(languages)):
-					msg_lang += " " + languages[i][0]
-
-				print "Message sent to user: " + msg_lang + "\n"
-				self.server.sendto(msg_lang + "\n", addr)
+			print "Message sent to user: " + msg_lang + "\n"
+			self.server.sendto(msg_lang + "\n", addr)
 
 
 		#UNQ request for TRS address
@@ -57,21 +55,19 @@ class socketServer:
 					self.server.sendto('UNR ERR\n', addr)
 					return
 
+			TRS_lang = message[1]
+			for i in range(len(languages)):
+				if(languages[i][0] == TRS_lang):
+					break;
+			if(i == len(languages)):
+				print "ERROR_UNQ: invalid language name"
+				self.server.sendto('UNR EOF\n', addr)
+			else:
+				TRS_ip = languages[i][1]
+				TRS_port = languages[i][2]
 
-			finally: #TODO: test this chunk of code
-				TRS_lang = message[1]
-				for i in range(len(languages)):
-					if(languages[i][0] == TRS_lang):
-						break;
-				if(i == len(languages)):
-					print "ERROR_UNQ: invalid language name"
-					self.server.sendto('UNR EOF\n', addr)
-				else:
-					TRS_ip = languages[i][1]
-					TRS_port = languages[i][2]
-
-					print "User app wants to connect to the following TRS: " + languages[i][0]
-					self.server.sendto('UNR ' + TRS_ip + ' ' + str(TRS_port) + '\n', addr)
+				print "User app wants to connect to the following TRS: " + languages[i][0]
+				self.server.sendto('UNR ' + TRS_ip + ' ' + str(TRS_port) + '\n', addr)
 
 		if (msg[:3] == "SRG"):
 			#TODO: registar no fich TRS novo de uma nova linguagem

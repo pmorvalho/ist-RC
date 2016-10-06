@@ -3,6 +3,7 @@
 #Server
 
 import socket
+import errno
 import sys
 
 
@@ -17,6 +18,7 @@ class socketServer:
 
 	def contact(self, languages):
 		print "Waiting for contact from someone"
+
 		msg, addr = self.server.recvfrom(1024)
 
 		message = msg.split(" ")
@@ -25,16 +27,30 @@ class socketServer:
 
 		if (msg[:3] == "ULQ"):
 			if(len(languages) == 0):
-				self.server.sendto("ULR EOF\n", addr)
-				print "ERROR_ULR: there are no TRS services available"
-				return
+				try:
+					self.server.sendto("ULR EOF\n", addr)
+					print "ERROR_ULR: there are no TRS services available"
+					return
+				except socket.error as senderror:
+					if(senderror.errno != errno.ECONNREFUSED):
+						raise senderror
+					print "SOCKET_ERROR: Error sending message to client: ULR EOF"
+					print senderror
+					return
 
 
 
 			if(len(message) > 1):
-				self.server.sendto("ULR ERR\n", addr)
-				print "ERROR_ULR: messsage format corrupted"
-				return
+				try:
+					self.server.sendto("ULR ERR\n", addr)
+					print "ERROR_ULR: messsage format corrupted"
+					return
+				except socket.error as senderror:
+					if(senderror.errno != errno.ECONNREFUSED):
+						raise senderror
+					print "SOCKET_ERROR: Error sending message to client: ULR ERR"
+					print senderror
+					return
 
 			msg_lang = "ULR " + str(len(languages))
 
@@ -42,7 +58,16 @@ class socketServer:
 				msg_lang += " " + languages[i][0]
 
 			print "Message sent to user: " + msg_lang + "\n"
-			self.server.sendto(msg_lang + "\n", addr)
+
+			try:
+				self.server.sendto(msg_lang + "\n", addr)
+
+			except socket.error as senderror:
+				if(senderror.errno != errno.ECONNREFUSED):
+					raise senderror
+				print "SOCKET_ERROR: Error sending message to client: LIST OF LANGUAGES"
+				print senderror
+				return
 
 
 		#UNQ request for TRS address
@@ -50,8 +75,15 @@ class socketServer:
 			#TODO: com o nome da linguagem, ir ao fich buscar ip e port do TRS respetivo
 			if(len(message) != 2):
 				print "ERROR_UNQ: message sent from user is corrupted"
-				self.server.sendto('UNR ERR\n', addr)
-				return
+				try:
+					self.server.sendto('UNR ERR\n', addr)
+					return
+				except socket.error as senderror:
+						if(senderror.errno != errno.ECONNREFUSED):
+							raise senderror
+						print "SOCKET_ERROR: Error sending message to client: UNR ERR"
+						print senderror
+						return
 
 			TRS_lang = message[1]
 			for i in range(len(languages)):
@@ -59,30 +91,71 @@ class socketServer:
 					break;
 			if(i == len(languages)):
 				print "ERROR_UNQ: invalid language name"
-				self.server.sendto('UNR EOF\n', addr)
+				try:
+					self.server.sendto('UNR EOF\n', addr)
+
+				except socket.error as senderror:
+						if(senderror.errno != errno.ECONNREFUSED):
+							raise senderror
+						print "SOCKET_ERROR: Error sending message to client: UNR EOF"
+						print senderror
+						return
 			else:
 				TRS_ip = languages[i][1]
 				TRS_port = languages[i][2]
 
 				print "User app wants to connect to the following TRS: " + languages[i][0]
-				self.server.sendto('UNR ' + TRS_ip + ' ' + str(TRS_port) + '\n', addr)
+				try:
+					self.server.sendto('UNR ' + TRS_ip + ' ' + str(TRS_port) + '\n', addr)
+
+				except socket.error as senderror:
+						if(senderror.errno != errno.ECONNREFUSED):
+							raise senderror
+						print "SOCKET_ERROR: Error sending message to client: UNR"
+						print senderror
+						return
 
 		if (msg[:3] == "SRG"):
 			#TODO: registar no fich TRS novo de uma nova linguagem
-			if(len(message) != 4): #verificar mensagens corruptas
-				print "error in SRG format from TRS"
-				self.server.sendto("SRR ERR\n", addr)
-				return
+				if(len(message) != 4): #verificar mensagens corruptas
+					try:
+						print "error in SRG format from TRS"
+						self.server.sendto("SRR ERR\n", addr)
+						return
+					except socket.error as senderror:
+						if(senderror.errno != errno.ECONNREFUSED):
+							raise senderror
+						print "SOCKET_ERROR: Error sending message to TRS server: SRR ERR"
+						print senderror
+						return
 
-			for i in range(len(languages)):
-				if languages[i][0] == message[1]:
-					print "SRG_ERROR: error registrating TRS service"
-					self.server.sendto('SRR NOK\n', addr)
+
+				for i in range(len(languages)):
+					if languages[i][0] == message[1]:
+						try:
+							print "SRG_ERROR: error registrating TRS service"
+							self.server.sendto('SRR NOK\n', addr)
+							return
+						except socket.error as senderror:
+							if(senderror.errno != errno.ECONNREFUSED):
+								raise senderror
+							print "SOCKET_ERROR: Error sending message to TRS server: SRR NOK"
+							print senderror
+							return
+
+				#adds the TRS that wants to register to the list of languages active
+				languages += [(message[1],message[2],eval(message[3]))]
+				print "Successfully registrated TRS service: " + message[1] + "\n"
+				try:
+					self.server.sendto('SRR OK\n', addr)
+				except socket.error as senderror:
+					if(senderror.errno != errno.ECONNREFUSED):
+						raise senderror
+					print "SOCKET_ERROR: Error sending message to TRS server: SRR OK"
+					print senderror
 					return
-			#adds the TRS that wants to register to the list of languages active
-			languages += [(message[1],message[2],eval(message[3]))]
-			print "Successfully registrated TRS service: " + message[1] + "\n"
-			self.server.sendto('SRR OK\n', addr)
+
+
 
 		if (msg[:3] == "SUN"):
 			#TODO: remove do fich um TRS de uma certa linguagem
@@ -90,18 +163,30 @@ class socketServer:
 			if(len(message) != 4): #verificar mensagens corruptas
 				print "SUN_ERROR: message sent is corrupted"
 				return
-			TRS_lang = (message[1], message[2], eval(message[3]))
-			if(TRS_lang in languages):
-				languages.remove(TRS_lang)
-				status_SUN = "OK\n"
-				print "Successfully removed TRS service: " + message[1]
-			else:
-				status_SUN = "NOK\n"
-				print "SUN_WARNING: TRS service not removed: " + message[1]
+			try:
+				TRS_lang = (message[1], message[2], eval(message[3]))
+				if(TRS_lang in languages):
+					languages.remove(TRS_lang)
+					status_SUN = "OK\n"
+					print "Successfully removed TRS service: " + message[1]
+				else:
+					status_SUN = "NOK\n"
+					print "SUN_WARNING: TRS service not removed: " + message[1]
 
-			self.server.sendto('SUR ' + status_SUN, addr)
+				self.server.sendto('SUR ' + status_SUN, addr)
 
 
+			except socket.error as senderror:
+				if(senderror.errno != errno.ECONNREFUSED):
+					raise senderror
+				print "SOCKET_ERROR: Error sending message SUR to TRS server"
+				print senderror
+				return
+
+
+
+
+	#Updates the file languages.txt as the execution may have changed the languages registred
 	def updateLanguages(self, file, languages):
 		lang_f = open("languages.txt", "w")
 		print "Languages being added to languages.txt"
@@ -148,6 +233,8 @@ try:
 	s.terminateConnection()
 
 
+
+
 except KeyboardInterrupt:
 	print '\n'
 	print 'KeyboardInterrupt found --- treating Control-C interruption'
@@ -161,6 +248,9 @@ except ValueError:
 except Exception:
 	print "FORMAT_ERROR: Wrong way to execute this program"
 	print "SOLUTION_EXAMPLE: python TCS.py -p 50000"
+
+except socket.gaierror:
+	print "SOCKET_ERROR: Failed to get host name"
 
 
 finally:

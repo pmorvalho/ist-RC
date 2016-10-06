@@ -5,6 +5,14 @@
 import socket
 import sys
 import os
+import errno
+
+
+def shutApp():
+  s.close()
+  sys.exit("Thank you! Come again")
+
+
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
@@ -35,13 +43,27 @@ address = (host, port)
 print(address)
 
 while(1):
-  command = raw_input("Command: ")
+  try:
+    command = raw_input("Command: ")
+  except IOError:
+    print "INPUT_ERROR: error reading input"
+    continue
+
   
   if (command == "list"):
     msg = "ULQ\n"
 
-    s.sendto(msg, address)
+    try:
+      s.sendto(msg, address)
+    except socket.error as senderror:
+      if(senderror.errno != errno.ECONNREFUSED):
+        raise senderror
+      print "SOCKET_ERROR: Error sending message to TCS server: ULQ"
+      print senderror
+      continue
 
+
+    #raise an exception if necessary 
     d = s.recvfrom(1024)
     reply = d[0]
     addr = d[1]
@@ -68,8 +90,15 @@ while(1):
       
     else:
       msg = "UNQ " + languages[lang] + "\n"
+      try:
+        s.sendto(msg, address)
+      except socket.error as senderror:
+        if(senderror.errno != errno.ECONNREFUSED):
+          raise senderror
+        print "SOCKET_ERROR: Error sending message to TCS server: UNQ"
+        print senderror
+        continue
 
-      s.sendto(msg, address)
 
       d = s.recvfrom(1024)
       reply = d[0]
@@ -100,7 +129,15 @@ while(1):
       	msg += "\n"
       	print "Sent to TRS: " + msg
       	
-      	socketTRS.send(msg)
+        try:
+      	  socketTRS.send(msg)
+
+        except socket.error as senderror:
+          if(senderror.errno != errno.ECONNREFUSED):
+            raise senderror
+          print "SOCKET_ERROR: Error sending message to TRS server: msg"
+          print senderror
+          continue
 
       	msg = socketTRS.recv(1024)
 
@@ -119,7 +156,14 @@ while(1):
       	msg = "TRQ f " + comm[3] + " " + str(os.stat(comm[3]).st_size) + " "
       	print msg
 
-        socketTRS.send(msg)
+        try:
+          socketTRS.send(msg)
+        except socket.error as senderror:
+          if(senderror.errno != errno.ECONNREFUSED):
+            raise senderror
+          print "SOCKET_ERROR: Error sending message to TRS server: msg"
+          print senderror
+          continue
         
         #enviar ficheiro
         print "Uploading file to server..."
@@ -129,12 +173,28 @@ while(1):
       	data = file_to_trl.read(256)
 
         while (data):
-          socketTRS.send(data)
+          try:
+            socketTRS.send(data)
+
+          except socket.error as senderror:
+            if(senderror.errno != errno.ECONNREFUSED):
+              raise senderror
+            print "SOCKET_ERROR: Error sending message to TRS server: (BINARY DATA)"
+            print senderror
+            continue
+
           data = file_to_trl.read(256)
 
         file_to_trl.close()
       	
-      	socketTRS.send("\n")
+        try:
+      	  socketTRS.send("\n")
+        except socket.error as senderror:
+          if(senderror.errno != errno.ECONNREFUSED):
+            raise senderror
+          print "SOCKET_ERROR: Error sending message to TRS server: (EXTRA FORMAT)"
+          print senderror
+          continue
 
         print "File uploaded"
 
@@ -196,6 +256,5 @@ while(1):
       socketTRS.close()
     
   if (command == "exit"):
-    sys.exit("Thank you! Come again")
+    shutApp()
 
-s.close()

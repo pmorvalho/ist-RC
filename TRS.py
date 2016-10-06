@@ -23,49 +23,63 @@ class socketTCP:
 
 		print 'Got connection from ', addr
 
-		to_translate = c.recv(1024)
+		to_translate = c.recv(3)
 
-		to_translate = to_translate.split(" ")
-
-		# try:
-		noWords = eval(to_translate[2])
-		# except:
-		# 	nao e um numero...
-		to_translate[noWords+2] = to_translate[noWords+2][:-1] # tirar \n
-
-		if ( to_translate[0] != "TRQ"):
+		print to_translate
+		
+		if ( to_translate != "TRQ"):
 			print "ERROR"
 			sys.exit()
+		
+		to_translate = c.recv(3)
+		
+		if ( to_translate == " t " ):
+		
+			to_translate = c.recv(1024)
 
-		if ( to_translate[1] == "t" ):
+			to_translate = to_translate.split(" ")
 
-			to_translate = to_translate[3:]
+			# try:
+			noWords = eval(to_translate[0])
+			# except:
+			# 	nao e um numero...
+			to_translate[noWords] = to_translate[noWords][:-1] # tirar \n
+
+		  
+
+			to_translate = to_translate[1:]
 
 			translation = "TRR t " + str(noWords)
 
 			for i in range(noWords):
 				if (to_translate[i] not in dictionary):
-					translation += " WORD_NOT_AVAILABLE"
+					translation = "TRR NTA"
+					break
 				else:
 					translation += " " + dictionary[to_translate[i]]
 			translation += "\n"
 
 			print translation
 			
-		elif ( to_translate[1] == "f" ):
+		elif ( to_translate == " f " ):
 		  
-			recv_file = open("data","w+")
+			recv_file = open("data","wb+")
 			
-			data = self.server.recvfrom(1024)
+			data, addr = c.recvfrom(1024)
+
+			print type(data)
 			
 			while(data):
-			  recv_file.write(data)
-			  data = self.server.recvfrom(1024)
+				recv_file.write(data)
+				data, addr = c.recvfrom(1024)
 			
 			recv_file.close()
 			
 			translation = "Success\n"
-			  
+		
+		else:
+			print "Invalid translation request"
+			translation = "TRR ERR\n"
 
 		c.send(translation)
 
@@ -183,32 +197,5 @@ sockTCP.listen(10)
 while(1):
 
 	sockTCP.translate_and_send(words_translation)
-
-# while(1):
-
-# 	command = raw_input("Command: ")
-
-# 	print command
-
-# 	# if (command == "SRG"):
-# 	#
-# 	# 	msg = "SRG Frances 100.00.02.3 59000\n"
-# 	#
-# 	# 	sockUdp.getServer().sendto(msg, (hostTCS, portTCS))
-# 	#
-# 	# 	print sockUdp.getServer().recvfrom(1024)
-
-# 	if (command == "SUN"): #SUN language IP port
-# 		msg = "SUN Frances 100.00.02.3 59000\n"
-
-# 		sockUdp.getServer().sendto(msg, (socket.gethostname(), portTCS))
-
-# 		print "Enviou"
-
-# 		print sockUdp.getServer().recvfrom(1024)
-
-#   	if (command == "exit"):
-
-# 		sys.exit("Volte em breve!")
 
 sockUdp.terminateConnection()

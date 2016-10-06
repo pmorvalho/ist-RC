@@ -77,7 +77,7 @@ while(1):
       rep = reply.split(" ")
 
       if ( rep[0] != "UNR" ):
-	print "Algo esta mal..."
+        print "Algo esta mal..."
 
       ipTRS = rep[1]
       portTRS = eval(rep[2])
@@ -93,43 +93,45 @@ while(1):
       #   exit()
 
       if (comm[2] == "t"):
-	nWords = len(comm[3:])
-	msg = "TRQ t " + str(nWords)
-	for i in range(nWords):
-	  msg += " " + comm[3:][i]
-	msg += "\n"
-	print "Sent to TRS: " + msg
-	
-	socketTRS.send(msg)
+      	nWords = len(comm[3:])
+      	msg = "TRQ t " + str(nWords)
+      	for i in range(nWords):
+      	  msg += " " + comm[3:][i]
+      	msg += "\n"
+      	print "Sent to TRS: " + msg
+      	
+      	socketTRS.send(msg)
 
-	msg = socketTRS.recv(1024)
+      	msg = socketTRS.recv(1024)
 
-	msg = msg.split(" ")
+      	msg = msg.split(" ")
 
-	translation = ""
+      	translation = ""
 
-	for i in range(len(msg[3:])):
-	  translation += msg[3:][i] + " "
+      	for i in range(len(msg[3:])):
+      	  translation += " " + msg[3:][i]
 
-	print "Translation: " , translation
+        # Verificar se deu TRR ERR ou TRR NTA
+
+      	print "Translation:" , translation
 
       if (comm[2] == "f"):
-	msg = "TRQ f " + comm[3] + " " + str(os.stat(comm[3]).st_size) + " "
-	print msg
+      	msg = "TRQ f " + comm[3] + " " + str(os.stat(comm[3]).st_size) + " "
+      	print msg
 
-	#enviar ficheiro
-	print "Uploading file to server..."
-	
-	file_to_trl = open(comm[3],"rb")
-	
-	data = file_to_trl.read()
-	
-	socketTRS.sendall(data)
+      	#enviar ficheiro
+      	print "Uploading file to server..."
+      	
+      	file_to_trl = open(comm[3],"rb")
+      	
+      	data = file_to_trl.read()
+      	
+      	socketTRS.sendall(msg + data + "\n")
 
-	#recepcao do ficheiro
-	print "Downloading file..."
+      	#recepcao do ficheiro
+      	print "Downloading file..."
 
-	print "Download complete"
+      	print "Download complete"
 
       socketTRS.close()
     

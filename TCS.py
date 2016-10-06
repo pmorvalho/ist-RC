@@ -24,18 +24,17 @@ class socketServer:
 		print "Message received: " + msg
 
 		if (msg[:3] == "ULQ"):
-			try:
-				if(len(languages) == 0):
-					self.server.sendto("ULR EOF\n", addr)
-					print "ERROR_ULR: there are no TRS services available"
-					return
+			if(len(languages) == 0):
+				self.server.sendto("ULR EOF\n", addr)
+				print "ERROR_ULR: there are no TRS services available"
+				return
 
 
 
-				if(len(message) > 1):
-					self.server.sendto("ULR ERR\n", addr)
-					print "ERROR_ULR: messsage format corrupted"
-					return
+			if(len(message) > 1):
+				self.server.sendto("ULR ERR\n", addr)
+				print "ERROR_ULR: messsage format corrupted"
+				return
 
 			msg_lang = "ULR " + str(len(languages))
 
@@ -49,11 +48,10 @@ class socketServer:
 		#UNQ request for TRS address
 		if (msg[:3] == "UNQ"):
 			#TODO: com o nome da linguagem, ir ao fich buscar ip e port do TRS respetivo
-			try:
-				if(len(message) != 2):
-					print "ERROR_UNQ: message sent from user is corrupted"
-					self.server.sendto('UNR ERR\n', addr)
-					return
+			if(len(message) != 2):
+				print "ERROR_UNQ: message sent from user is corrupted"
+				self.server.sendto('UNR ERR\n', addr)
+				return
 
 			TRS_lang = message[1]
 			for i in range(len(languages)):

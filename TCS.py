@@ -113,8 +113,6 @@ class socketServer:
 	
 	def terminateConnection(self):
 		self.server.close()
-		print "TCS Turning off -- System Exit"
-		sys.exit(0)
 
 lang_f = open("languages.txt", "a+")
 
@@ -159,13 +157,14 @@ except KeyboardInterrupt:
 except ValueError:
 	print "VALUE_ERROR: Invalid port given"
 	print "PORT_INT: Port must be an integer"
-	print "Exiting"
-	sys.exit(0)
 
 except Exception:
 	print "FORMAT_ERROR: Wrong way to execute this program"
 	print "SOLUTION_EXAMPLE: python TCS.py -p 50000"
-	print "Exiting"
+
+
+finally:
+	print "TCS Turning off -- System Exit"
 	sys.exit(0)
 
 

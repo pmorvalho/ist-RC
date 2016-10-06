@@ -8,10 +8,9 @@ import os
 import errno
 
 
-def shutApp():
+def shutApp(): 
   s.close()
   sys.exit("Thank you! Come again")
-
 
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -115,12 +114,14 @@ while(1):
       
       socketTRS = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-      # try:
-      socketTRS.connect(addressTRS)
-      # except:
-      #   print "Erro na conexao com o TRS"
-      #   exit()
+      while(1):
+        try:
+          socketTRS.connect(addressTRS)
+          break
+        except socket.error as err:
+          print "SOCKET_ERROR: Failed connecting"
 
+      
       if (comm[2] == "t"):
       	nWords = len(comm[3:])
       	msg = "TRQ t " + str(nWords)
@@ -128,9 +129,9 @@ while(1):
       	  msg += " " + comm[3:][i]
       	msg += "\n"
       	print "Sent to TRS: " + msg
-      	
+
         try:
-      	  socketTRS.send(msg)
+          socketTRS.send(msg)
 
         except socket.error as senderror:
           if(senderror.errno != errno.ECONNREFUSED):
@@ -257,4 +258,5 @@ while(1):
     
   if (command == "exit"):
     shutApp()
+
 

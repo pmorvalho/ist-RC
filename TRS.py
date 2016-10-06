@@ -15,19 +15,44 @@ class socketTCP:
 		self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		self.server.bind((self.host, self.port))
 
-
-
 	def listen(self, n):
 		(self.server).listen(n)
 
-	def contact(self):
+	def translate_and_send(self, dictionary):
 		c, addr = self.server.accept()
 
-		print 'Got connection from', addr
+		print 'Got connection from ', addr
 
-		print c.recv(400)
+		to_translate = c.recv(1024)
 
-		c.send('Thank you for connecting')
+		to_translate = to_translate.split(" ")
+
+		# try:
+		noWords = eval(to_translate[2])
+		# except:
+		# 	nao e um numero...
+		to_translate[noWords+2] = to_translate[noWords+2][:-1] # tirar \n
+
+		if ( to_translate[0] != "TRQ"):
+			print "ERROR"
+			sys.exit()
+
+		if ( to_translate[1] == "t" ):
+
+			to_translate = to_translate[3:]
+
+			translation = "TRR t " + str(noWords)
+
+			for i in range(noWords):
+				if (to_translate[i] not in dictionary):
+					translation += " WORD_NOT_AVAILABLE"
+				else:
+					translation += " " + dictionary[to_translate[i]]
+			translation += "\n"
+
+			print translation
+
+		c.send(translation)
 
 		c.close()
 
@@ -58,7 +83,10 @@ class socketUDP:
 
 		if (reply[0] == "SRR NOK\n"):
 			print "Cannot register. Exiting..."
+			self.server.close()
 			sys.exit()
+
+		print "TRS successfully registered"
 
 	def contact(self):
 		msg, addr = self.server.recvfrom(1024)
@@ -118,39 +146,54 @@ else:
 
 sockUdp = socketUDP(socket.gethostname(), portTCS, sys.argv[1])
 
+sockUdp.register(port);
+
+# criar dicionario com as palavras do ficheiro
+lang_file = open(sockUdp.language + ".txt","r")
+
+contentTrans = lang_file.readlines()
+
+words_translation = []
+for i in range(len(contentTrans)):
+	line_split = contentTrans[i].split(" ")
+	words_translation += [(line_split[0], line_split[1][:-1])]
+
+words_translation = dict(words_translation)
+#
+
 sockTCP = socketTCP(port)
 
-sockUdp.register(portTCS);
-
+sockTCP.listen(10)
 
 while(1):
 
-	command = raw_input("Command: ")
+	sockTCP.translate_and_send(words_translation)
 
-	print command
+# while(1):
 
-	# if (command == "SRG"):
-	#
-	# 	msg = "SRG Frances 100.00.02.3 59000\n"
-	#
-	# 	sockUdp.getServer().sendto(msg, (hostTCS, portTCS))
-	#
-	# 	print sockUdp.getServer().recvfrom(1024)
+# 	command = raw_input("Command: ")
 
-	if (command == "SUN"): #SUN language IP port
-		msg = "SUN Frances 100.00.02.3 59000\n"
+# 	print command
 
-		sockUdp.getServer().sendto(msg, (socket.gethostname(), portTCS))
+# 	# if (command == "SRG"):
+# 	#
+# 	# 	msg = "SRG Frances 100.00.02.3 59000\n"
+# 	#
+# 	# 	sockUdp.getServer().sendto(msg, (hostTCS, portTCS))
+# 	#
+# 	# 	print sockUdp.getServer().recvfrom(1024)
 
-		print "Enviou"
+# 	if (command == "SUN"): #SUN language IP port
+# 		msg = "SUN Frances 100.00.02.3 59000\n"
 
-		print sockUdp.getServer().recvfrom(1024)
+# 		sockUdp.getServer().sendto(msg, (socket.gethostname(), portTCS))
 
-  	if (command == "exit"):
+# 		print "Enviou"
 
-		sys.exit("Volte em breve!")
+# 		print sockUdp.getServer().recvfrom(1024)
 
+#   	if (command == "exit"):
 
-# sockUdp.contact()
+# 		sys.exit("Volte em breve!")
 
 sockUdp.terminateConnection()

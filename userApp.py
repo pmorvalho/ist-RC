@@ -4,6 +4,7 @@
 
 import socket
 import sys
+import os
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
@@ -29,19 +30,9 @@ else:
   host = socket.gethostname()
   port = 58052
 
-#print host
-
 address = (host, port)
 
 print(address)
-
-#s.connect(address)
-
-#ip = socket.gethostbyname(host)
-
-#print "Got connection to server ->  IPaddress", address[0], " port:", ip
-
-#raw_input("Please enter the message you wish to send: ")
 
 while(1):
   command = raw_input("Command: ")
@@ -57,8 +48,7 @@ while(1):
     
     rep = reply.split(" ")
 
-    #caso nao haja linguagens disponiveis
-    if ( eval(rep[1]) == 0 ):
+    if ( eval(rep[1]) == 0 ): #caso nao haja linguagens disponiveis
       print "Nao ha linguagens disponiveis"
     else:
       for i in range(eval(rep[1])):
@@ -86,17 +76,14 @@ while(1):
     portTRS = eval(rep[2])
     hostTRS = socket.gethostbyaddr(ipTRS)[0]
     addressTRS = (hostTRS,portTRS)
-    #addressTRS = (socket.gethostname(),59000) #LALALALALALALALALALALALALLALALALALALALALALALLALALA
-
-    print "Cenas maradas a acontecer: "
-
-    print addressTRS
-
-    #print "IP: " + portTRS + " Port: " + ipTRS
-
+    
     socketTRS = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+    # try:
     socketTRS.connect(addressTRS)
+    # except:
+    #   print "Erro na conexao com o TRS"
+    #   exit()
 
     if (comm[2] == "t"):
       nWords = len(comm[3:])
@@ -104,7 +91,8 @@ while(1):
       for i in range(nWords):
         msg += " " + comm[3:][i]
       msg += "\n"
-      print "Texto a traduzir: " + msg
+      print "Sent to TRS: " + msg
+      
       socketTRS.send(msg)
 
       msg = socketTRS.recv(1024)
@@ -114,17 +102,25 @@ while(1):
       translation = ""
 
       for i in range(len(msg[3:])):
-        translation += msg[3:][i]
+        translation += msg[3:][i] + " "
 
-      print translation
+      print "Translation: " , translation
 
     if (comm[2] == "f"):
-      msg = "TRQ f " + comm[3] + " " + "size" + " " + "data" + "\n"
+      msg = "TRQ f " + comm[3] + " " + os.stat(comm[3]).st_size + " " + "data" + "\n"
       print msg
+
+      #enviar ficheiro
+      print "Uploading file to server..."
+
+      #recepcao do ficheiro
+      print "Downloading file..."
+
+      print "Download complete"
 
     socketTRS.close()
     
   if (command == "exit"):
-    sys.exit("Volte em breve!")
+    sys.exit("Thank you! Come again")
 
 s.close()

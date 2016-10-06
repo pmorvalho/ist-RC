@@ -268,11 +268,8 @@ try:
 	else:
 		raise Exception
 
-	print "Verify final input"
 
 	verify_final_input(port, hostTCS, portTCS)
-
-	print "Final input verified"
 
 
 	sockUdp = socketUDP(socket.gethostname(), portTCS, sys.argv[1])
@@ -281,7 +278,7 @@ try:
 
 	# criar dicionario com as palavras do ficheiro
 
-	lang_file = open("text_translation.txt","r")
+	lang_file = open(sockUdp.language + "/text_translation.txt","r")
 
 	contentTrans = lang_file.readlines()
 
@@ -295,7 +292,7 @@ try:
 	#
 
 	# criar dicionario com as palavras do ficheiro
-	lang_file = open("file_translation.txt","r")
+	lang_file = open(sockUdp.language + "/file_translation.txt","r")
 
 	contentTrans = lang_file.readlines()
 

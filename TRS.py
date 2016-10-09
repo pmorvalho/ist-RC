@@ -7,6 +7,7 @@ import socket
 import sys
 import os
 import math
+import errno
 
 class socketTCP:
 
@@ -62,8 +63,14 @@ class socketTCP:
 			translation += "\n"
 
 			print translation
-			c.send(translation)
-			
+			try:
+				c.send(translation)
+			except socket.error as senderror:
+				if(senderror.errno != errno.ECONNREFUSED):
+					raise senderror
+				print "SOCKET_ERROR: Error sending message to client: UNR ERR"
+				print senderror
+				return
 		elif ( to_translate == " f " ):
 
 			byte = c.recv(1)
@@ -109,8 +116,14 @@ class socketTCP:
 
 			msg = "TRR f " + file_dictionary[filename] + " " + str(os.stat(lang + "/" + file_dictionary[filename]).st_size) + " "
 
-			c.send(msg)
-
+			try:
+				c.send(msg)
+			except socket.error as senderror:
+					if(senderror.errno != errno.ECONNREFUSED):
+						raise senderror
+					print "SOCKET_ERROR: Error sending message to client: UNR ERR"
+					print senderror
+					return
 			#enviar ficheiro
 			print "Sending file to client..."
 			  	
@@ -119,23 +132,39 @@ class socketTCP:
 			#########################################
 			print "Sending file to client..."
 			data = file_to_trl.read(256)
-
-			while (data):
-				c.send(data)
-				data = file_to_trl.read(256)
-
+			try:	
+				while (data):
+					c.send(data)
+					data = file_to_trl.read(256)
+			except socket.error as senderror:
+				if(senderror.errno != errno.ECONNREFUSED):
+					raise senderror
+				print "SOCKET_ERROR: Error sending message to client: UNR ERR"
+				print senderror
+				return
 			file_to_trl.close()
-	      	
-			c.send("\n")
-
+			try:
+				c.send("\n")
+			except socket.error as senderror:
+				if(senderror.errno != errno.ECONNREFUSED):
+					raise senderror
+				print "SOCKET_ERROR: Error sending message to client: UNR ERR"
+				print senderror
+				return
 			print "File sent to client"
 	        #########################################
 
 		else:
 			print "Invalid translation request"
 			translation = "TRR ERR\n"
-			c.send(translation)
-
+			try:
+				c.send(translation)
+			except socket.error as senderror:
+					if(senderror.errno != errno.ECONNREFUSED):
+						raise senderror
+					print "SOCKET_ERROR: Error sending message to client: UNR ERR"
+					print senderror
+					return
 		c.close()
 
 	def terminateConnection(self):
@@ -157,8 +186,14 @@ class socketUDP:
 		print "Registation on TCS being sent: "
 		print addressTCS
 
-		self.server.sendto(msg, addressTCS)
-
+		try:
+			self.server.sendto(msg, addressTCS)
+		except socket.error as senderror:
+				if(senderror.errno != errno.ECONNREFUSED):
+					raise senderror
+				print "SOCKET_ERROR: Error sending message to client: UNR ERR"
+				print senderror
+				return
 		print "Waiting for registration confirmation from TCS..."
 
 		reply = self.server.recvfrom(1024)
@@ -188,8 +223,14 @@ class socketUDP:
 		print "Unregistation request being sent: "
 		print addressTCS
 
-		self.server.sendto(msg, addressTCS)
-
+		try:
+			self.server.sendto(msg, addressTCS)
+		except socket.error as senderror:
+				if(senderror.errno != errno.ECONNREFUSED):
+					raise senderror
+				print "SOCKET_ERROR: Error sending message to client: UNR ERR"
+				print senderror
+				return
 		print "Waiting for unregistration confirmation from TCS..."
 
 		reply = self.server.recvfrom(1024)

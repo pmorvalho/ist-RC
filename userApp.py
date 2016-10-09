@@ -12,6 +12,37 @@ def shutApp():
   s.close()
   sys.exit("Thank you! Come again")
 
+def list_languages(sock,lang):
+  #raise an exception if necessary 
+  d = sock.recvfrom(1024)
+  reply = d[0]
+  addr = d[1]
+
+  rep = reply.split(" ")
+
+  if (rep[0] != "ULR"):
+    print "TCS reply does not comply with te protocol"
+  elif ( rep[1] == "EOF\n" ): #caso nao haja linguagens disponiveis
+    print "No languages available"
+  elif (rep[1] == "ERR\n"):
+    print "ULQ request wrongly formatted"
+  else:
+    for i in range(eval(rep[1])):
+      print str(i+1) + " - " + rep[i+2]
+      
+    lang += rep[2:-1] + [rep[-1][:-1]]
+
+def request_command():
+  #TODO: isto^
+  return
+
+def text_trslt():
+  #TODO: isto^
+  return
+
+def file_trslt():
+  #TODO: isto^
+  return
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
@@ -61,25 +92,19 @@ while(1):
       print senderror
       continue
 
+    languages = []
 
-    #raise an exception if necessary 
-    d = s.recvfrom(1024)
-    reply = d[0]
-    addr = d[1]
-
-    rep = reply.split(" ")
-
-    if ( rep[1] == "EOF\n" ): #caso nao haja linguagens disponiveis
-      print "No languages available"
-    else:
-      for i in range(eval(rep[1])):
-        print str(i+1) + " - " + rep[i+2]
-        
-      languages = rep[2:-1] + [rep[-1][:-1]]
+    list_languages(s,languages)
 
   if (command[:7] == "request"):
-    comm = command.split(" ")
-    lang = eval(comm[1]) - 1
+    
+    comm = command.split(" ") #lista com os varios argumentos do comando
+    
+    try: 
+      lang = eval(comm[1]) - 1
+    except:
+      print "Language index not valid"
+      continue
     
     if (len(languages) == 0):
       print "No languages. Try using 'list' first"
@@ -87,26 +112,47 @@ while(1):
     elif (lang >= len(languages) or lang < 0):
       print "Language index not valid"
       
-    else:
+    else: #Envia mensagem ao TCS
+      
       msg = "UNQ " + languages[lang] + "\n"
+      
       try:
         s.sendto(msg, address)
       except socket.error as senderror:
         if(senderror.errno != errno.ECONNREFUSED):
           raise senderror
-        print "SOCKET_ERROR: Error sending message to TCS server: UNQ"
+        print "SOCKET_ERROR: Error sending message to TCS: UNQ"
         print senderror
+        #TODO: sair graciosamente
         continue
 
+      try:
+        d = s.recvfrom(1024)
+      except:
+        print "SOCKET_ERROR: Error receiving message from TCS: UNR expected"
+        print senderror
+        #TODO: sair graciosamente
 
-      d = s.recvfrom(1024)
       reply = d[0]
 
       rep = reply.split(" ")
 
-      if ( rep[0] != "UNR" ):
-        print "Algo esta mal..."
+      if (rep[0] != "UNR"):
+        print "Wrong message received from TCS (ainda falta abandonar de forma graciosa)"
+        #TODO: sair graciosamente
+        sys.exit()
 
+      if (rep[1] == "EOF"):
+        print "Translation request could not be completed (ainda falta abandonar de forma graciosa)"
+        #TODO: sair graciosamente
+        sys.exit()
+
+      elif (rep[1] == "ERR"):
+        print "UNR ERR (ainda falta abandonar de forma graciosa)"
+        #TODO: sair graciosamente
+        sys.exit()
+
+      #TODO: mandar try aqui
       ipTRS = rep[1]
       portTRS = eval(rep[2])
       hostTRS = socket.gethostbyaddr(ipTRS)[0]
@@ -138,7 +184,8 @@ while(1):
             raise senderror
           print "SOCKET_ERROR: Error sending message to TRS server: msg"
           print senderror
-          continue
+          print "(falta abandonar de forma graciosa)"
+          sys.exit()
 
       	msg = socketTRS.recv(1024)
 
@@ -153,7 +200,7 @@ while(1):
 
       	print "Translation:" , translation
 
-      if (comm[2] == "f"):
+      elif (comm[2] == "f"):
       	msg = "TRQ f " + comm[3] + " " + str(os.stat(comm[3]).st_size) + " "
       	print msg
 
@@ -253,6 +300,12 @@ while(1):
         recv_file.close()
 
         print "Download complete"
+
+      else:
+        print "Command wrongly formatted"
+        socketTRS.close()
+        continue
+
 
       socketTRS.close()
     

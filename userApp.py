@@ -6,6 +6,7 @@ import socket
 import sys
 import os
 import errno
+import time
 
 
 def shutApp(): 
@@ -286,16 +287,10 @@ while(1):
 
         recv_file = open("translation_" + filename,"wb+")
 
-        packs_no = filesize / 256
-
-        if ( (filesize % 256) != 0 ):
-          packs_no += 1
-
-        print packs_no
-
-        for i in range(packs_no):
+        while (filesize > 0):
           data = socketTRS.recv(256)
           recv_file.write(data)
+          filesize -= len(data)
 
         recv_file.close()
 

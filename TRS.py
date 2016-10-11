@@ -54,14 +54,10 @@ class socketTCP:
 
 		recv_file = open(l + "/" + fname,"wb+")
 
-		packs_no = fsize / 256
-
-		if ( (fsize % 256) != 0 ):
-			packs_no += 1
-
-		for i in range(packs_no):
+		while (fsize > 0):
 			data = socketAccept.recv(256)
 			recv_file.write(data)
+			fsize -= len(data)
 
 		recv_file.close()
 

@@ -19,7 +19,15 @@ class socketServer:
 	def contact(self, languages, lnames):
 		print "Waiting for contact from someone"
 
-		msg, addr = self.server.recvfrom(1024)
+
+		try:
+			self.server.settimeout(20.0)
+			msg, addr = self.server.recvfrom(1024)
+		except Exception:
+			print "CONN_TIMEOUT: Just waited 20.0 seconds for a connection and didn't get one"
+			print "CONN_RETRY: Retrying to get connection"
+			return
+
 
 		message = msg.split(" ")
 		print "Just received messaged: from IP:" + addr[0] + ' from Port:' + str(addr[1])
@@ -71,7 +79,7 @@ class socketServer:
 
 
 		#UNQ request for TRS address
-		if (msg[:3] == "UNQ"):
+		elif (msg[:3] == "UNQ"):
 			if(len(message) != 2):
 				print "ERROR_UNQ: message sent from user is corrupted"
 				try:
@@ -114,7 +122,7 @@ class socketServer:
 					print senderror
 					return
 
-		if (msg[:3] == "SRG"):
+		elif (msg[:3] == "SRG"):
 			#TODO: registar no fich TRS novo de uma nova linguagem
 				if(len(message) != 4): #verificar mensagens corruptas
 					try:
@@ -156,7 +164,7 @@ class socketServer:
 
 
 
-		if (msg[:3] == "SUN"):
+		elif (msg[:3] == "SUN"):
 			# remove do fich um TRS de uma certa linguagem
 			TRS_lang = message[1]
 			if(len(message) != 4): #verificar mensagens corruptas
@@ -181,6 +189,10 @@ class socketServer:
 				print "SOCKET_ERROR: Error sending message SUR to TRS server"
 				print senderror
 				return
+
+		else:
+			print "CONN_ERROR: Received message with worng format"
+			return 
 
 
 

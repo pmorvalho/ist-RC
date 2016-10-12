@@ -136,7 +136,7 @@ class socketServer:
 						print senderror
 						return
 
-				if (message[1] in lnames):
+				if (message[1] in lnames or (message[2],eval(message[3])) in languages.values()):
 					try:
 						print "SRG_ERROR: error registrating TRS service"
 						self.server.sendto('SRR NOK\n', addr)

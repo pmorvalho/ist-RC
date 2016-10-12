@@ -34,6 +34,7 @@ class socketTCP:
 		for i in range(noWords):
 			if (to_translate_aux[i] not in dict_words):
 				translation += "TRR NTA"
+				print "Translation not found!"
 				break
 			else:
 				translation += " " + dict_words[to_translate_aux[i]]
@@ -136,13 +137,15 @@ class socketTCP:
 			self.receive_file(filename, lang)
 
 			print "User file received"
-			print filename + "--->" + file_dictionary[filename]
+
 			#devolver ficheiro com traducao
 			if (filename in file_dictionary):
+				print filename + "--->" + file_dictionary[filename]
 				self.send_file(file_dictionary, filename, lang)
 				print "Translation sent!"
 			else:
 				socketAccept.send("TRR NTA\n")
+				print "Translation not found!"
 		else:
 			print "Invalid translation request"
 			translation = "TRR ERR\n"

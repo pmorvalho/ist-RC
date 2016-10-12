@@ -14,13 +14,19 @@ def shutApp():
 	sys.exit("Thank you! Come again")
 
 def list_languages(sock,lang):
-	#raise an exception if necessary 
-	d = sock.recvfrom(1024)
+	try:
+		d = sock.recvfrom(2048)
+	except:
+		print "Error receiving message from TCS. Exiting..."
+		shutApp()
+
 	reply = d[0]
 	addr = d[1]
 
 	rep = reply.split(" ")
 
+	if (len(rep) < 2):
+		return
 	if (rep[0] != "ULR"):
 		print "TCS reply does not comply with protocol"
 	elif ( rep[1] == "EOF\n" ): #caso nao haja linguagens disponiveis
@@ -73,6 +79,8 @@ address = (host, port)
 
 print(address)
 
+languages = []
+
 while(1):
 	try:
 		command = raw_input("Command: ")
@@ -80,7 +88,6 @@ while(1):
 		print "INPUT_ERROR: error reading input"
 		continue
 
-	
 	if (command == "list"):
 		msg = "ULQ\n"
 
@@ -93,11 +100,9 @@ while(1):
 			print senderror
 			continue
 
-		languages = []
-
 		list_languages(s,languages)
 
-	if (command[:7] == "request"):
+	elif (command[:7] == "request"):
 		
 		comm = command.split(" ") #lista com os varios argumentos do comando
 		
@@ -132,26 +137,31 @@ while(1):
 			except:
 				print "SOCKET_ERROR: Error receiving message from TCS: UNR expected"
 				print senderror
-				#TODO: sair graciosamente
+				socketTRS.close()
+				continue
 
 			reply = d[0]
 
 			rep = reply.split(" ")
 
 			if (rep[0] != "UNR"):
-				print "Wrong message received from TCS (ainda falta abandonar de forma graciosa)"
-				#TODO: sair graciosamente
-				sys.exit()
+				print "Wrong message received from TCS"
+				socketTRS.close()
+				continue
 
 			if (rep[1] == "EOF"):
 				print "Translation request could not be completed (ainda falta abandonar de forma graciosa)"
 				#TODO: sair graciosamente
-				sys.exit()
+				shutApp()
 
 			elif (rep[1] == "ERR"):
 				print "UNR ERR (ainda falta abandonar de forma graciosa)"
 				#TODO: sair graciosamente
-				sys.exit()
+				shutApp()
+
+			if (len(rep) != 3):
+				print "Protocol error"
+				shutApp()
 
 			#TODO: mandar try aqui
 			ipTRS = rep[1]
@@ -183,17 +193,18 @@ while(1):
 				except socket.error as senderror:
 					if(senderror.errno != errno.ECONNREFUSED):
 						raise senderror
-					print "SOCKET_ERROR: Error sending message to TRS server: msg"
+					print "SOCKET_ERROR: Error sending message to TRS server: ", msg
 					print senderror
-					print "(falta abandonar de forma graciosa)"
-					sys.exit()
+					print "Exiting..."
+					socketTRS.close()
+					shutApp()
 
 				msg = socketTRS.recv(1024)
 
 				if (msg[:3] != "TRR"):
-					print "Message received does not comply with protocol"
-					# terminar graciosamente
-					sys.exit()
+					print "Message received does not comply with protocol. TRS is probably corrupted"
+					socketTRS.close()
+					continue
 
 				if (msg[:7] == "TRR NTA"):
 					print "No translation available. Try typing a different text"
@@ -217,8 +228,13 @@ while(1):
 				print "Translation:" , translation
 
 			elif (comm[2] == "f"):
-				msg = "TRQ f " + comm[3] + " " + str(os.stat(comm[3]).st_size) + " "
-				print msg
+				
+				try:
+					msg = "TRQ f " + comm[3] + " " + str(os.stat(comm[3]).st_size) + " "
+				except:
+					print "File does not exist\n"
+					socketTRS.close()
+					continue
 
 				try:
 					socketTRS.send(msg)
@@ -229,10 +245,10 @@ while(1):
 					print senderror
 					continue
 				
+				file_to_trl = open(comm[3],"rb")
+
 				#enviar ficheiro
 				print "Uploading file to server..."
-				
-				file_to_trl = open(comm[3],"rb")
 				
 				data = file_to_trl.read(256)
 
@@ -268,35 +284,37 @@ while(1):
 
 				if ( translated != "TRR"):
 					print "Error receiving file translation"
-					sys.exit()
+					socketTRS.close()
+					continue
 				
 				translated = socketTRS.recv(3)
 
 				if (translated == " NT"):
 					translated = socketTRS.recv(1)
 					if (translated == "A"):
-						print "No translation available for file. Try uploading a different file"
+						print "No translation available for file. Try uploading a different file\n"
 						socketTRS.close()
 						continue
 					else:
-						print "Message received does not comply with protocol"
+						print "Message received does not comply with protocol\n"
 						socketTRS.close()
 						continue
 
 				if (translated == " ER"):
 					translated = socketTRS.recv(1)
 					if (translated == "R"):
-						print "Error in message format"
+						print "Error in message format\n"
 						socketTRS.close()
 						continue
 					else:
-						print "Message received does not comply with protocol"
+						print "Message received does not comply with protocol\n"
 						socketTRS.close()
 						continue
 
 				if (translated != " f "):
-					print "Message received does not comply with protocol"
-					sys.exit()
+					print "Message received does not comply with protocol\n"
+					socketTRS.close()
+					continue
 
 				#####################################################################
 				byte = socketTRS.recv(1)
@@ -315,7 +333,7 @@ while(1):
 					filesize += byte
 					byte = socketTRS.recv(1)
 
-				print "File size: " , filesize
+				print "File size: " , filesize, " bytes"
 
 				print "Downloading file..."
 
@@ -326,8 +344,10 @@ while(1):
 
 				while (filesize > 0):
 					data = socketTRS.recv(256)
-					recv_file.write(data)
 					filesize -= len(data)
+					if (filesize <= 0 and data[-1] == "\n"): #remover \n do ficheiro enviado
+						data = data[:-1]
+					recv_file.write(data)
 
 				recv_file.close()
 
@@ -341,7 +361,10 @@ while(1):
 
 			socketTRS.close()
 		
-	if (command == "exit"):
+	elif (command == "exit"):
 		shutApp()
+
+	else:
+		print "Command not found\n"
 
 

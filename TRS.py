@@ -31,7 +31,6 @@ class socketTCP:
 
 		to_translate_aux = to_translate_aux[1:]
 		translation = "TRR t " + str(noWords)
-		print dict_words
 		for i in range(noWords):
 			if (to_translate_aux[i] not in dict_words):
 				translation += "TRR NTA"
@@ -64,7 +63,6 @@ class socketTCP:
 	def send_file(self, dict_files, fname, l):
 
 		msg = "TRR f " + dict_files[fname] + " " + str(os.stat(l + "/" + dict_files[fname]).st_size) + " "
-		print dict_files
 		try:
 			socketAccept.send(msg)
 		except socket.error as senderror:
@@ -78,8 +76,6 @@ class socketTCP:
 
 		file_to_trl = open(l + "/" + dict_files[fname],"rb")
 
-		#########################################
-		print "Sending file to client..."
 		data = file_to_trl.read(256)
 		try:
 			while (data):
@@ -117,9 +113,11 @@ class socketTCP:
 
 		if ( to_translate == " t " ):
 			to_translate = socketAccept.recv(1024)
+			print "Word(s) received..."
 			transl = self.text_translation(to_translate, word_dictionary)
 			try:
 				socketAccept.send(transl)
+				print "Translation sent!"
 			except socket.error as senderror:
 				if(senderror.errno != errno.ECONNREFUSED):
 					raise senderror
@@ -138,11 +136,13 @@ class socketTCP:
 			self.receive_file(filename, lang)
 
 			print "User file received"
-			print filename
+			print filename + "--->" + file_dictionary[filename]
 			#devolver ficheiro com traducao
-
-			self.send_file(file_dictionary, filename, lang)
-
+			if (filename in file_dictionary):
+				self.send_file(file_dictionary, filename, lang)
+				print "Translation sent!"
+			else:
+				socketAccept.send("TRR NTA\n")
 		else:
 			print "Invalid translation request"
 			translation = "TRR ERR\n"
@@ -380,6 +380,7 @@ def deal_with_files(dict_words, dict_files):
 
 try:
 # trata do input
+	registed = 0
 	if (len(sys.argv) == 8):
 		port, portTCS, hostTCS = verify_input_len8(sys.argv)
 	elif (len(sys.argv) == 6):
@@ -395,9 +396,10 @@ try:
 
 	sockUdp = socketUDP(hostTCS, portTCS, sys.argv[1])
 	sockUdp.register(port);
+	registed = 1;
+	print ""
 
 	################## criar dicionario com as palavras do ficheiro #####################
-
 	words_translation = []
 	file_translation = []
 
@@ -411,15 +413,15 @@ try:
 	sockTCP.listen(5)
 
 	while(1):
+		print "Waiting for a user to contact..."
 		socketAccept, addr = sockTCP.server.accept()
 		sockTCP.translate_and_send(words_translation, file_translation, sockUdp.language)
-		# sleep(2)
 		socketAccept.close()
+		print ""
 
 except KeyboardInterrupt:
 	print '\n'
 	print 'KeyboardInterrupt found --- treating Control-C interruption'
-	sockUdp.terminateConnection(port)
 except ValueError:
 	print "VALUE_ERROR: Invalid port given"
 	print "PORT_INT: Port must be an integer"
@@ -431,5 +433,7 @@ except Exception:
 
 
 finally:
+	if( registed == 1):
+		sockUdp.terminateConnection(port)
 	print "TRS Turning off -- System Exit"
 	sys.exit(0)

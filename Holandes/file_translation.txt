@@ -2,3 +2,4 @@ muildier.jpg mula.jpeg
 auto_NL.jpg carro.jpg
 nl pt
 hond.jpg cao.jpg
+kind.jpg crianca.jpg

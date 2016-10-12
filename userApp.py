@@ -82,7 +82,6 @@ print(address)
 languages = []
 
 while(1):
-	print "Welcome user!\n"
 	try:
 		command = raw_input("Command: ")
 	except IOError:
@@ -145,7 +144,7 @@ while(1):
 			rep = reply.split(" ")
 
 			if (len(rep) != 3):
-				print "Protocol error in message received from TCS\n"
+				print "Protocol error in message received from TCS. Exiting...\n"
 				shutApp(s)
 
 			if (rep[0] != "UNR"):
@@ -168,12 +167,12 @@ while(1):
 			
 			socketTRS = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-			while(1):
-				try:
-					socketTRS.connect(addressTRS)
-					break
-				except socket.error as err:
-					print "SOCKET_ERROR: Failed connecting"
+			try:
+				socketTRS.connect(addressTRS)
+			except socket.error as err:
+				print "SOCKET_ERROR: Failed connecting. Exiting..."
+				socketTRS.close()
+				shutApp(s)
 
 			try:
 				translation_type = comm[2]
@@ -184,11 +183,15 @@ while(1):
 
 			if (comm[2] == "t"):
 				nWords = len(comm[3:])
+				if (nWords == 0):
+					print "No words to translate\n"
+					socketTRS.close()
+					continue
 				msg = "TRQ t " + str(nWords)
 				for i in range(nWords):
 					msg += " " + comm[3:][i]
 				msg += "\n"
-				print "Sent to TRS: " + msg
+				#print "Sent to TRS: " + msg
 
 				try:
 					socketTRS.send(msg)
@@ -212,7 +215,7 @@ while(1):
 				if (msg[:3] != "TRR"):
 					print "Message received does not comply with protocol. TRS is probably corrupted\n"
 					socketTRS.close()
-					continue
+					shutApp(s)
 
 				if (msg[:7] == "TRR NTA"):
 					print "No translation available. Try typing a different text\n"
@@ -220,7 +223,7 @@ while(1):
 					continue
 
 				if (msg[:7] == "TRR ERR"):
-					print "Error in message format"
+					print "Error in message format\n"
 					socketTRS.close()
 					continue
 
@@ -231,7 +234,7 @@ while(1):
 				for i in range(len(msg[3:])):
 					translation += " " + msg[3:][i]
 
-				print "Translation:" , translation
+				print "\nTranslation:" , translation
 
 			elif (comm[2] == "f"):
 
@@ -243,7 +246,7 @@ while(1):
 				try:
 					msg = "TRQ f " + comm[3] + " " + str(os.stat(comm[3]).st_size) + " "
 				except:
-					print "File does not exist\n"
+					print "File does not exist. Try a different file\n"
 					socketTRS.close()
 					continue
 
@@ -254,7 +257,9 @@ while(1):
 						raise senderror
 					print "SOCKET_ERROR: Error sending message to TRS server: msg"
 					print senderror
-					continue
+					print "Exiting..."
+					socketTRS.close()
+					shutApp(s)
 				
 				file_to_trl = open(comm[3],"rb")
 
@@ -272,7 +277,9 @@ while(1):
 							raise senderror
 						print "SOCKET_ERROR: Error sending message to TRS server: (BINARY DATA)"
 						print senderror
-						continue
+						print "Exiting..."
+						socketTRS.close()
+						shutApp(s)
 
 					data = file_to_trl.read(256)
 
@@ -285,9 +292,10 @@ while(1):
 						raise senderror
 					print "SOCKET_ERROR: Error sending message to TRS server: (EXTRA FORMAT)"
 					print senderror
-					continue
+					socketTRS.close()
+					shutApp(s)
 
-				print "File uploaded"
+				print "File uploaded\n"
 
 				#recepcao do ficheiro
 
@@ -299,9 +307,9 @@ while(1):
 					shutApp(s)
 
 				if ( translated != "TRR"):
-					print "Error receiving file translation"
+					print "Protocol error. Expecting file translation. Exiting..."
 					socketTRS.close()
-					continue
+					shutApp(s)
 				
 				try:
 					translated = socketTRS.recv(3)
@@ -324,9 +332,9 @@ while(1):
 						socketTRS.close()
 						continue
 					else:
-						print "Message received does not comply with protocol\n"
+						print "Message received does not comply with protocol. Exiting..."
 						socketTRS.close()
-						continue
+						shutApp(s)
 
 				if (translated == " ER"):
 					
@@ -342,14 +350,14 @@ while(1):
 						socketTRS.close()
 						continue
 					else:
-						print "Message received does not comply with protocol\n"
+						print "Message received does not comply with protocol. Exiting..."
 						socketTRS.close()
-						continue
+						shutApp(s)
 
 				if (translated != " f "):
-					print "Message received does not comply with protocol\n"
+					print "Message received does not comply with protocol. Exiting..."
 					socketTRS.close()
-					continue
+					shutApp(s)
 
 				#####################################################################
 				try:

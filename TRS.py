@@ -29,20 +29,22 @@ class socketTCP:
 		to_translate_aux = to_translate_aux.split(" ")
 		noWords = eval(to_translate_aux[0])
 		to_translate_aux[noWords] = to_translate_aux[noWords][:-1] # tirar \n
+		if(noWords>0):
+			# ignoramos o numero de palavras da string
+			to_translate_aux = to_translate_aux[1:]
+			# comeco da construcao da string de envio
+			translation = "TRR t " + str(noWords)
 
-		# ignoramos o numero de palavras da string
-		to_translate_aux = to_translate_aux[1:]
-		# comeco da construcao da string de envio
-		translation = "TRR t " + str(noWords)
-
-		for i in range(noWords):
-			if (to_translate_aux[i] not in dict_words):
-				translation = "TRR NTA"
-				print "Translation not found!"
-				break
-			else:
-				translation += " " + dict_words[to_translate_aux[i]]
-		translation += "\n"
+			for i in range(noWords):
+				if (to_translate_aux[i] not in dict_words):
+					translation = "TRR NTA"
+					print "Translation not found!"
+					break
+				else:
+					translation += " " + dict_words[to_translate_aux[i]]
+			translation += "\n"
+		else:
+			translation = "TRR NTA"
 		return translation
 
 	# funcao que trata de receber o ficheiro com o nome fname, enviado pelo cliente

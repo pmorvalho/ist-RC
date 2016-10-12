@@ -33,7 +33,7 @@ class socketTCP:
 		translation = "TRR t " + str(noWords)
 		for i in range(noWords):
 			if (to_translate_aux[i] not in dict_words):
-				translation += "TRR NTA"
+				translation = "TRR NTA"
 				print "Translation not found!"
 				break
 			else:
@@ -43,23 +43,29 @@ class socketTCP:
 
 	def receive_file(self, fname, l):
 		fsize=""
-		byte = socketAccept.recv(1)
-		while (byte != " "):
-			fsize += byte
+		try:
 			byte = socketAccept.recv(1)
 
-		print "File size: " , fsize
 
-		fsize = eval(fsize)
+			while (byte != " "):
+				fsize += byte
+				byte = socketAccept.recv(1)
 
-		recv_file = open(l + "/" + fname,"wb+")
+			print "File size: " , fsize
 
-		while (fsize > 0):
-			data = socketAccept.recv(256)
-			recv_file.write(data)
-			fsize -= len(data)
+			fsize = eval(fsize)
 
-		recv_file.close()
+			recv_file = open(l + "/" + fname,"wb+")
+
+			while (fsize > 0):
+				data = socketAccept.recv(256)
+				recv_file.write(data)
+				fsize -= len(data)
+
+			recv_file.close()
+		except:
+			print "Error receiving..."
+			raise senderror
 
 	def send_file(self, dict_files, fname, l):
 
@@ -103,19 +109,27 @@ class socketTCP:
 	def translate_and_send(self, word_dictionary, file_dictionary, lang):
 
 		print 'Got connection from ', addr
+		try:
+			to_translate = socketAccept.recv(3)
 
-		to_translate = socketAccept.recv(3)
+			if ( to_translate != "TRQ"):
+				print "ERROR"
+				sys.exit()
 
-		if ( to_translate != "TRQ"):
-			print "ERROR"
-			sys.exit()
-
-		to_translate = socketAccept.recv(3)
+			to_translate = socketAccept.recv(3)
+		except:
+			print "Error receiving..."
+			raise senderror
 
 		if ( to_translate == " t " ):
-			to_translate = socketAccept.recv(1024)
-			print "Word(s) received..."
-			transl = self.text_translation(to_translate, word_dictionary)
+			try:
+				to_translate = socketAccept.recv(1024)
+				print "Word(s) received..."
+				transl = self.text_translation(to_translate, word_dictionary)
+			except:
+				print "Error receiving..."
+				raise senderror
+
 			try:
 				socketAccept.send(transl)
 				print "Translation sent!"
@@ -128,14 +142,17 @@ class socketTCP:
 
 		elif ( to_translate == " f " ):
 			filename=""
-			byte = socketAccept.recv(1)
-			while (byte != " "):
-				filename += byte
+			try:
 				byte = socketAccept.recv(1)
+				while (byte != " "):
+					filename += byte
+					byte = socketAccept.recv(1)
 
-			print "Filename: " , filename
-			self.receive_file(filename, lang)
-
+				print "Filename: " , filename
+				self.receive_file(filename, lang)
+			except:
+				print "Error receiving..."
+				raise senderror
 			print "User file received"
 
 			#devolver ficheiro com traducao
@@ -212,9 +229,11 @@ class socketUDP:
 				print senderror
 				return
 		print "Waiting for unregistration confirmation from TCS..."
-
-		reply = self.server.recvfrom(1024)
-
+		try:
+			reply = self.server.recvfrom(1024)
+		except:
+			print "Error receiving..."
+			raise senderror
 		if (reply[0] == "SRR NOK\n"):
 			print "Cannot unregister. Exiting..."
 			self.server.close()
@@ -432,11 +451,12 @@ except ValueError:
 except Exception:
 	print "FORMAT_ERROR: Wrong way to execute this program"
 	print "SOLUTION_EXAMPLE: python TRS.py -p 50000 -n tejo.ist.utl.pt -e 58052"
-
-
+except socket.error:
+	print "SCOKET ERROR"
+	print "Aborting...."
 
 finally:
-	if( registed == 1):
+	if(registed == 1):
 		sockUdp.terminateConnection(port)
 	print "TRS Turning off -- System Exit"
 	sys.exit(0)

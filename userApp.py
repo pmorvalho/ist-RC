@@ -10,301 +10,338 @@ import time
 
 
 def shutApp(): 
-  s.close()
-  sys.exit("Thank you! Come again")
+	s.close()
+	sys.exit("Thank you! Come again")
 
 def list_languages(sock,lang):
-  #raise an exception if necessary 
-  d = sock.recvfrom(1024)
-  reply = d[0]
-  addr = d[1]
+	#raise an exception if necessary 
+	d = sock.recvfrom(1024)
+	reply = d[0]
+	addr = d[1]
 
-  rep = reply.split(" ")
+	rep = reply.split(" ")
 
-  if (rep[0] != "ULR"):
-    print "TCS reply does not comply with te protocol"
-  elif ( rep[1] == "EOF\n" ): #caso nao haja linguagens disponiveis
-    print "No languages available"
-  elif (rep[1] == "ERR\n"):
-    print "ULQ request wrongly formatted"
-  else:
-    for i in range(eval(rep[1])):
-      print str(i+1) + " - " + rep[i+2]
-      
-    lang += rep[2:-1] + [rep[-1][:-1]]
+	if (rep[0] != "ULR"):
+		print "TCS reply does not comply with protocol"
+	elif ( rep[1] == "EOF\n" ): #caso nao haja linguagens disponiveis
+		print "No languages available"
+	elif (rep[1] == "ERR\n"):
+		print "ULQ request wrongly formatted"
+	else:
+		for i in range(eval(rep[1])):
+			print str(i+1) + " - " + rep[i+2]
+			
+		lang += rep[2:-1] + [rep[-1][:-1]]
 
 def request_command():
-  #TODO: isto^
-  return
+	#TODO: isto^
+	return
 
 def text_trslt():
-  #TODO: isto^
-  return
+	#TODO: isto^
+	return
 
 def file_trslt():
-  #TODO: isto^
-  return
+	#TODO: isto^
+	return
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 if (len(sys.argv) == 3):
-  if (sys.argv[1] == "-n"):
-    host = sys.argv[2]
-    port = 58052
-  elif (sys.argv[1] == "-p"):
-    port = eval(sys.argv[2])
-    host = socket.gethostname()
+	if (sys.argv[1] == "-n"):
+		host = sys.argv[2]
+		port = 58052
+	elif (sys.argv[1] == "-p"):
+		port = eval(sys.argv[2])
+		host = socket.gethostname()
 
 elif (len(sys.argv) == 5):
-  if (sys.argv[1] == "-n"):
-    host = sys.argv[2]
-    if(sys.argv[3] == "-p"):
-      port = eval(sys.argv[4])
-  elif (sys.argv[1] == "-p"):
-    port = eval(sys.argv[2])
-    if(sys.argv[3] == "-n"):
-      host = sys.argv[4]
+	if (sys.argv[1] == "-n"):
+		host = sys.argv[2]
+		if(sys.argv[3] == "-p"):
+			port = eval(sys.argv[4])
+	elif (sys.argv[1] == "-p"):
+		port = eval(sys.argv[2])
+		if(sys.argv[3] == "-n"):
+			host = sys.argv[4]
 
 else:
-  host = socket.gethostname()
-  port = 58052
+	host = socket.gethostname()
+	port = 58052
 
 address = (host, port)
 
 print(address)
 
 while(1):
-  try:
-    command = raw_input("Command: ")
-  except IOError:
-    print "INPUT_ERROR: error reading input"
-    continue
+	try:
+		command = raw_input("Command: ")
+	except IOError:
+		print "INPUT_ERROR: error reading input"
+		continue
 
-  
-  if (command == "list"):
-    msg = "ULQ\n"
+	
+	if (command == "list"):
+		msg = "ULQ\n"
 
-    try:
-      s.sendto(msg, address)
-    except socket.error as senderror:
-      if(senderror.errno != errno.ECONNREFUSED):
-        raise senderror
-      print "SOCKET_ERROR: Error sending message to TCS server: ULQ"
-      print senderror
-      continue
+		try:
+			s.sendto(msg, address)
+		except socket.error as senderror:
+			if(senderror.errno != errno.ECONNREFUSED):
+				raise senderror
+			print "SOCKET_ERROR: Error sending message to TCS server: ULQ"
+			print senderror
+			continue
 
-    languages = []
+		languages = []
 
-    list_languages(s,languages)
+		list_languages(s,languages)
 
-  if (command[:7] == "request"):
-    
-    comm = command.split(" ") #lista com os varios argumentos do comando
-    
-    try: 
-      lang = eval(comm[1]) - 1
-    except:
-      print "Language index not valid"
-      continue
-    
-    if (len(languages) == 0):
-      print "No languages. Try using 'list' first"
-      
-    elif (lang >= len(languages) or lang < 0):
-      print "Language index not valid"
-      
-    else: #Envia mensagem ao TCS
-      
-      msg = "UNQ " + languages[lang] + "\n"
-      
-      try:
-        s.sendto(msg, address)
-      except socket.error as senderror:
-        if(senderror.errno != errno.ECONNREFUSED):
-          raise senderror
-        print "SOCKET_ERROR: Error sending message to TCS: UNQ"
-        print senderror
-        #TODO: sair graciosamente
-        continue
+	if (command[:7] == "request"):
+		
+		comm = command.split(" ") #lista com os varios argumentos do comando
+		
+		try: 
+			lang = eval(comm[1]) - 1
+		except:
+			print "Language index not valid"
+			continue
+		
+		if (len(languages) == 0):
+			print "No languages. Try using 'list' first"
+			
+		elif (lang >= len(languages) or lang < 0):
+			print "Language index not valid"
+			
+		else: #Envia mensagem ao TCS
+			
+			msg = "UNQ " + languages[lang] + "\n"
+			
+			try:
+				s.sendto(msg, address)
+			except socket.error as senderror:
+				if(senderror.errno != errno.ECONNREFUSED):
+					raise senderror
+				print "SOCKET_ERROR: Error sending message to TCS: UNQ"
+				print senderror
+				#TODO: sair graciosamente
+				continue
 
-      try:
-        d = s.recvfrom(1024)
-      except:
-        print "SOCKET_ERROR: Error receiving message from TCS: UNR expected"
-        print senderror
-        #TODO: sair graciosamente
+			try:
+				d = s.recvfrom(1024)
+			except:
+				print "SOCKET_ERROR: Error receiving message from TCS: UNR expected"
+				print senderror
+				#TODO: sair graciosamente
 
-      reply = d[0]
+			reply = d[0]
 
-      rep = reply.split(" ")
+			rep = reply.split(" ")
 
-      if (rep[0] != "UNR"):
-        print "Wrong message received from TCS (ainda falta abandonar de forma graciosa)"
-        #TODO: sair graciosamente
-        sys.exit()
+			if (rep[0] != "UNR"):
+				print "Wrong message received from TCS (ainda falta abandonar de forma graciosa)"
+				#TODO: sair graciosamente
+				sys.exit()
 
-      if (rep[1] == "EOF"):
-        print "Translation request could not be completed (ainda falta abandonar de forma graciosa)"
-        #TODO: sair graciosamente
-        sys.exit()
+			if (rep[1] == "EOF"):
+				print "Translation request could not be completed (ainda falta abandonar de forma graciosa)"
+				#TODO: sair graciosamente
+				sys.exit()
 
-      elif (rep[1] == "ERR"):
-        print "UNR ERR (ainda falta abandonar de forma graciosa)"
-        #TODO: sair graciosamente
-        sys.exit()
+			elif (rep[1] == "ERR"):
+				print "UNR ERR (ainda falta abandonar de forma graciosa)"
+				#TODO: sair graciosamente
+				sys.exit()
 
-      #TODO: mandar try aqui
-      ipTRS = rep[1]
-      portTRS = eval(rep[2])
-      hostTRS = socket.gethostbyaddr(ipTRS)[0]
-      addressTRS = (hostTRS,portTRS)
-      
-      socketTRS = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			#TODO: mandar try aqui
+			ipTRS = rep[1]
+			portTRS = eval(rep[2])
+			hostTRS = socket.gethostbyaddr(ipTRS)[0]
+			addressTRS = (hostTRS,portTRS)
+			
+			socketTRS = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-      while(1):
-        try:
-          socketTRS.connect(addressTRS)
-          break
-        except socket.error as err:
-          print "SOCKET_ERROR: Failed connecting"
+			while(1):
+				try:
+					socketTRS.connect(addressTRS)
+					break
+				except socket.error as err:
+					print "SOCKET_ERROR: Failed connecting"
 
-      
-      if (comm[2] == "t"):
-      	nWords = len(comm[3:])
-      	msg = "TRQ t " + str(nWords)
-      	for i in range(nWords):
-      	  msg += " " + comm[3:][i]
-      	msg += "\n"
-      	print "Sent to TRS: " + msg
+			
+			if (comm[2] == "t"):
+				nWords = len(comm[3:])
+				msg = "TRQ t " + str(nWords)
+				for i in range(nWords):
+					msg += " " + comm[3:][i]
+				msg += "\n"
+				print "Sent to TRS: " + msg
 
-        try:
-          socketTRS.send(msg)
+				try:
+					socketTRS.send(msg)
 
-        except socket.error as senderror:
-          if(senderror.errno != errno.ECONNREFUSED):
-            raise senderror
-          print "SOCKET_ERROR: Error sending message to TRS server: msg"
-          print senderror
-          print "(falta abandonar de forma graciosa)"
-          sys.exit()
+				except socket.error as senderror:
+					if(senderror.errno != errno.ECONNREFUSED):
+						raise senderror
+					print "SOCKET_ERROR: Error sending message to TRS server: msg"
+					print senderror
+					print "(falta abandonar de forma graciosa)"
+					sys.exit()
 
-      	msg = socketTRS.recv(1024)
+				msg = socketTRS.recv(1024)
 
-      	msg = msg.split(" ")
+				if (msg[:3] != "TRR"):
+					print "Message received does not comply with protocol"
+					# terminar graciosamente
+					sys.exit()
 
-      	translation = ""
+				if (msg[:7] == "TRR NTA"):
+					print "No translation available. Try typing a different text"
+					socketTRS.close()
+					continue
 
-      	for i in range(len(msg[3:])):
-      	  translation += " " + msg[3:][i]
+				if (msg[:7] == "TRR ERR"):
+					print "Error in message format"
+					socketTRS.close()
+					continue
 
-        # Verificar se deu TRR ERR ou TRR NTA
+				msg = msg.split(" ")
 
-      	print "Translation:" , translation
+				translation = ""
 
-      elif (comm[2] == "f"):
-      	msg = "TRQ f " + comm[3] + " " + str(os.stat(comm[3]).st_size) + " "
-      	print msg
+				for i in range(len(msg[3:])):
+					translation += " " + msg[3:][i]
 
-        try:
-          socketTRS.send(msg)
-        except socket.error as senderror:
-          if(senderror.errno != errno.ECONNREFUSED):
-            raise senderror
-          print "SOCKET_ERROR: Error sending message to TRS server: msg"
-          print senderror
-          continue
-        
-        #enviar ficheiro
-        print "Uploading file to server..."
-        
-        file_to_trl = open(comm[3],"rb")
-      	
-      	data = file_to_trl.read(256)
+				# Verificar se deu TRR ERR ou TRR NTA
 
-        while (data):
-          try:
-            socketTRS.send(data)
+				print "Translation:" , translation
 
-          except socket.error as senderror:
-            if(senderror.errno != errno.ECONNREFUSED):
-              raise senderror
-            print "SOCKET_ERROR: Error sending message to TRS server: (BINARY DATA)"
-            print senderror
-            continue
+			elif (comm[2] == "f"):
+				msg = "TRQ f " + comm[3] + " " + str(os.stat(comm[3]).st_size) + " "
+				print msg
 
-          data = file_to_trl.read(256)
+				try:
+					socketTRS.send(msg)
+				except socket.error as senderror:
+					if(senderror.errno != errno.ECONNREFUSED):
+						raise senderror
+					print "SOCKET_ERROR: Error sending message to TRS server: msg"
+					print senderror
+					continue
+				
+				#enviar ficheiro
+				print "Uploading file to server..."
+				
+				file_to_trl = open(comm[3],"rb")
+				
+				data = file_to_trl.read(256)
 
-        file_to_trl.close()
-      	
-        try:
-      	  socketTRS.send("\n")
-        except socket.error as senderror:
-          if(senderror.errno != errno.ECONNREFUSED):
-            raise senderror
-          print "SOCKET_ERROR: Error sending message to TRS server: (EXTRA FORMAT)"
-          print senderror
-          continue
+				while (data):
+					try:
+						socketTRS.send(data)
 
-        print "File uploaded"
+					except socket.error as senderror:
+						if(senderror.errno != errno.ECONNREFUSED):
+							raise senderror
+						print "SOCKET_ERROR: Error sending message to TRS server: (BINARY DATA)"
+						print senderror
+						continue
 
-      	#recepcao do ficheiro
+					data = file_to_trl.read(256)
 
-        translated = socketTRS.recv(3)
+				file_to_trl.close()
+				
+				try:
+					socketTRS.send("\n")
+				except socket.error as senderror:
+					if(senderror.errno != errno.ECONNREFUSED):
+						raise senderror
+					print "SOCKET_ERROR: Error sending message to TRS server: (EXTRA FORMAT)"
+					print senderror
+					continue
 
-        if ( translated != "TRR"):
-          print "Error receiving file translation"
-          sys.exit()
-        
-        translated = socketTRS.recv(3)
+				print "File uploaded"
 
-        if (translated != " f "):
-          print "Error in message format"
-          sys.exit()
+				#recepcao do ficheiro
 
-        #####################################################################
-        byte = socketTRS.recv(1)
-        filename = ""
+				translated = socketTRS.recv(3)
 
-        while (byte != " "):
-          filename += byte
-          byte = socketTRS.recv(1)
+				if ( translated != "TRR"):
+					print "Error receiving file translation"
+					sys.exit()
+				
+				translated = socketTRS.recv(3)
 
-        print "Filename: " , filename
+				if (translated == " NT"):
+					translated = socketTRS.recv(1)
+					if (translated == "A"):
+						print "No translation available for file. Try uploading a different file"
+						socketTRS.close()
+						continue
+					else:
+						print "Message received does not comply with protocol"
+						socketTRS.close()
+						continue
 
-        byte = socketTRS.recv(1)
-        filesize = ""
+				if (translated == " ER"):
+					translated = socketTRS.recv(1)
+					if (translated == "R"):
+						print "Error in message format"
+						socketTRS.close()
+						continue
+					else:
+						print "Message received does not comply with protocol"
+						socketTRS.close()
+						continue
 
-        while (byte != " "):
-          filesize += byte
-          byte = socketTRS.recv(1)
+				if (translated != " f "):
+					print "Message received does not comply with protocol"
+					sys.exit()
 
-        print "File size: " , filesize
+				#####################################################################
+				byte = socketTRS.recv(1)
+				filename = ""
 
-        print "Downloading file..."
+				while (byte != " "):
+					filename += byte
+					byte = socketTRS.recv(1)
 
-        ################################################################
-        filesize = eval(filesize)
+				print "Filename: " , filename
 
-        recv_file = open("translation_" + filename,"wb+")
+				byte = socketTRS.recv(1)
+				filesize = ""
 
-        while (filesize > 0):
-          data = socketTRS.recv(256)
-          recv_file.write(data)
-          filesize -= len(data)
+				while (byte != " "):
+					filesize += byte
+					byte = socketTRS.recv(1)
 
-        recv_file.close()
+				print "File size: " , filesize
 
-        print "Download complete"
+				print "Downloading file..."
 
-      else:
-        print "Command wrongly formatted"
-        socketTRS.close()
-        continue
+				################################################################
+				filesize = eval(filesize)
+
+				recv_file = open("translation_" + filename,"wb+")
+
+				while (filesize > 0):
+					data = socketTRS.recv(256)
+					recv_file.write(data)
+					filesize -= len(data)
+
+				recv_file.close()
+
+				print "Download complete"
+
+			else:
+				print "Command wrongly formatted"
+				socketTRS.close()
+				continue
 
 
-      socketTRS.close()
-    
-  if (command == "exit"):
-    shutApp()
+			socketTRS.close()
+		
+	if (command == "exit"):
+		shutApp()
 
 

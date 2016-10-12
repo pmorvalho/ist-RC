@@ -1,2 +1,4 @@
 mule.jpeg mula.jpeg
 car.jpg carro.jpg
+uk.jpg pt
+dog.jpg cao.jpg

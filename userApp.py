@@ -82,6 +82,7 @@ print(address)
 languages = []
 
 while(1):
+	print "Welcome user!\n"
 	try:
 		command = raw_input("Command: ")
 	except IOError:

@@ -129,11 +129,15 @@ class socketTCP:
 		print 'Got connection from ', addr
 		try:
 			to_translate = socketAccept.recv(3) #le os tres primeiros bytes da mensagem e confirma o protocolo
+		except:
+			print "Error receiving..."
+			return
 
-			if ( to_translate != "TRQ"):
-				print "ERROR in Protocol"
-				sys.exit()
+		if ( to_translate != "TRQ"):
+			print "ERROR in Protocol"
+			sys.exit()
 
+		try:
 			to_translate = socketAccept.recv(3) # le os 3 bytes seguintes da mensagem
 		except:
 			print "Error receiving..."
@@ -146,7 +150,7 @@ class socketTCP:
 				transl = self.text_translation(to_translate, word_dictionary) # chama a funcao de traducao
 			except:
 				print "Error receiving..."
-				raise senderror
+				return
 
 			try:
 				socketAccept.send(transl) # envia a traducao da(s) palavra(s)

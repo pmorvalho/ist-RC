@@ -340,7 +340,7 @@ try:
 		portTCS = args.e
 	##########################################################
 
-	sockUdp = socketUDP(hostTCS, portTCS, sys.argv[1]) # socket UDP de contacto com o TCS
+	sockUdp = socketUDP(hostTCS, portTCS, args.lang) # socket UDP de contacto com o TCS
 	try:
 		sockUdp.getServer().settimeout(10)
 		sockUdp.register(port) # regista o TRS no TCS

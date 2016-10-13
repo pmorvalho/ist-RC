@@ -16,7 +16,11 @@ def shutApp(sock):
 
 def list_languages(sock,lang):
 	try:
+		sock.settimeout(5)
 		d = sock.recvfrom(2048)
+	except socket.timeout:
+		print "Socket timed out. TCS is probably down. Exiting..."
+		shutApp(s)
 	except:
 		print "Error receiving message from TCS. Exiting..."
 		shutApp(s)
@@ -137,7 +141,12 @@ while(1):
 				shutApp(s)
 
 			try:
+				s.settimeout(5)
 				d = s.recvfrom(1024)
+			except socket.timeout:
+				print "socket.recv timed out. TRS is probably down. Exiting..."
+				socketTRS.close()
+				shutApp(s)
 			except:
 				print "SOCKET_ERROR: Error receiving message from TCS: UNR expected. Exiting..."
 				shutApp(s)
@@ -209,7 +218,12 @@ while(1):
 					shutApp(s)
 
 				try:
+					socketTRS.settimeout(5)
 					msg = socketTRS.recv(1024)
+				except socket.timeout:
+					print "socket.recv timed out. TRS is probably down. Exiting..."
+					socketTRS.close()
+					shutApp(s)
 				except:
 					print "SOCKET_ERROR: Error receiving message from TRS. Exiting...\n"
 					socketTRS.close()
@@ -303,7 +317,12 @@ while(1):
 				#recepcao do ficheiro
 
 				try:
+					socketTRS.settimeout(5)
 					translated = socketTRS.recv(3)
+				except socket.timeout:
+					print "socket.recv timed out. TRS is probably down. Exiting..."
+					socketTRS.close()
+					shutApp(s)
 				except:
 					print "SOCKET_ERROR: Error receiving message from TRS. Exiting..."
 					socketTRS.close()
@@ -315,7 +334,12 @@ while(1):
 					shutApp(s)
 				
 				try:
+					socketTRS.settimeout(5)
 					translated = socketTRS.recv(3)
+				except socket.timeout:
+					print "socket.recv timed out. TRS is probably down. Exiting..."
+					socketTRS.close()
+					shutApp(s)
 				except:
 					print "SOCKET_ERROR: Error receiving message from TRS. Exiting..."
 					socketTRS.close()
@@ -324,7 +348,12 @@ while(1):
 				if (translated == " NT"):
 					
 					try:
+						socketTRS.settimeout(5)
 						translated = socketTRS.recv(1)
+					except socket.timeout:
+						print "socket.recv timed out. TRS is probably down. Exiting..."
+						socketTRS.close()
+						shutApp(s)
 					except:
 						print "SOCKET_ERROR: Error receiving message from TRS. Exiting..."
 						socketTRS.close()
@@ -342,7 +371,12 @@ while(1):
 				if (translated == " ER"):
 					
 					try:
+						socketTRS.settimeout(5)
 						translated = socketTRS.recv(1)
+					except socket.timeout:
+						print "socket.recv timed out. TRS is probably down. Exiting..."
+						socketTRS.close()
+						shutApp(s)
 					except:
 						print "SOCKET_ERROR: Error receiving message from TRS. Exiting..."
 						socketTRS.close()
@@ -364,7 +398,12 @@ while(1):
 
 				#####################################################################
 				try:
+					socketTRS.settimeout(5)
 					byte = socketTRS.recv(1)
+				except socket.timeout:
+					print "socket.recv timed out. TRS is probably down. Exiting..."
+					socketTRS.close()
+					shutApp(s)
 				except:
 					print "SOCKET_ERROR: Error receiving message from TRS. Exiting..."
 					socketTRS.close()
@@ -375,7 +414,12 @@ while(1):
 				while (byte != " "):
 					filename += byte
 					try:
+						socketTRS.settimeout(5)
 						byte = socketTRS.recv(1)
+					except socket.timeout:
+						print "socket.recv timed out. TRS is probably down. Exiting..."
+						socketTRS.close()
+						shutApp(s)
 					except:
 						print "SOCKET_ERROR: Error receiving message from TRS. Exiting..."
 						socketTRS.close()
@@ -384,7 +428,12 @@ while(1):
 				print "Filename: " , filename
 
 				try:
+					socketTRS.settimeout(5)
 					byte = socketTRS.recv(1)
+				except socket.timeout:
+					print "socket.recv timed out. TRS is probably down. Exiting..."
+					socketTRS.close()
+					shutApp(s)
 				except:
 					print "SOCKET_ERROR: Error receiving message from TRS. Exiting..."
 					socketTRS.close()
@@ -395,7 +444,12 @@ while(1):
 				while (byte != " "):
 					filesize += byte
 					try:
+						socketTRS.settimeout(5)
 						byte = socketTRS.recv(1)
+					except socket.timeout:
+						print "socket.recv timed out. TRS is probably down. Exiting..."
+						socketTRS.close()
+						shutApp(s)
 					except:
 						print "SOCKET_ERROR: Error receiving message from TRS. Exiting..."
 						socketTRS.close()
@@ -418,11 +472,17 @@ while(1):
 
 				while (filesize > 0):
 					try:
+						socketTRS.settimeout(5)
 						data = socketTRS.recv(256)
+					except socket.timeout:
+						print "socket.recv timed out. TRS is probably down. Exiting..."
+						socketTRS.close()
+						shutApp(s)
 					except:
 						print "SOCKET_ERROR: Error receiving file from TRS. Exiting..."
 						socketTRS.close()
 						shutApp(s)
+					
 					filesize -= len(data)
 					if (filesize <= 0 and data[-1] == "\n"): #remover \n do ficheiro enviado
 						data = data[:-1]

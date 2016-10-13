@@ -135,6 +135,7 @@ class socketServer:
 				print "ERROR_UNQ: invalid language name"
 				try:
 					self.server.sendto('UNR EOF\n', addr)
+					return
 
 				except socket.error as senderror:#Tratamento de um erro que possa existir na chamada de sistema sendto
 						if(senderror.errno != errno.ECONNREFUSED):

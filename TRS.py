@@ -68,7 +68,7 @@ class socketTCP:
 				print "File on directory overwritten"
 			except:
 				print "Translation file created"
-				
+
 			recv_file = open(l + "/" + fname,"wb+")
 
 			while (fsize > 0):
@@ -131,13 +131,13 @@ class socketTCP:
 			to_translate = socketAccept.recv(3) #le os tres primeiros bytes da mensagem e confirma o protocolo
 
 			if ( to_translate != "TRQ"):
-				print "ERROR"
+				print "ERROR in Protocol"
 				sys.exit()
 
 			to_translate = socketAccept.recv(3) # le os 3 bytes seguintes da mensagem
 		except:
 			print "Error receiving..."
-			raise senderror
+			return
 
 		if ( to_translate == " t " ):
 			try:
@@ -177,7 +177,8 @@ class socketTCP:
 			if (filename in file_dictionary):
 				print filename + "--->" + file_dictionary[filename]
 				self.send_file(file_dictionary, filename, lang) # envia o ficheiro de traducao
-				print "Translation sent!"
+				if(transl!="TRR NTA"):
+					print "Translation sent!"
 			else: #quando o ficheiro nao tem traducao no sistema
 				socketAccept.send("TRR NTA\n")
 				print "Translation not found!"

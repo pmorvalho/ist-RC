@@ -143,7 +143,7 @@ while(1):
 
 			rep = reply.split(" ")
 
-			if (len(rep) != 3 or len(rep) != 2):
+			if (len(rep) > 3 or len(rep) < 2):
 				print "Protocol error in message received from TCS. Exiting...\n"
 				shutApp(s)
 

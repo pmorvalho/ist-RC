@@ -44,17 +44,6 @@ def list_languages(sock,lang):
 			
 		lang += rep[2:-1] + [rep[-1][:-1]]
 
-def request_command():
-	#TODO: isto^
-	return
-
-def text_trslt():
-	#TODO: isto^
-	return
-
-def file_trslt():
-	#TODO: isto^
-	return
 
 #Parse dos comandos do terminal###########################
 parser = argparse.ArgumentParser()

@@ -29,6 +29,11 @@ class socketTCP:
 		# fazemos o split do input pelos espaco e passamos a leitura do numero de palavras que vamos traduzir
 		to_translate_aux = to_translate_aux.split(" ")
 		noWords = eval(to_translate_aux[0])
+		
+		if (len(to_translate_aux) != noWords+1):# Verifica se numero de palvaras a traduzir e igual ao indicado
+			translation = "TRR ERR\n"
+			return translation
+
 		to_translate_aux[noWords] = to_translate_aux[noWords][:-1] # tirar \n
 		if(noWords>0):
 			# ignoramos o numero de palavras da string
@@ -45,7 +50,7 @@ class socketTCP:
 					translation += " " + dict_words[to_translate_aux[i]]
 			translation += "\n"
 		else:
-			translation = "TRR NTA\n"
+			translation = "TRR ERR\n"
 		return translation
 
 	# funcao que trata de receber o ficheiro com o nome fname, enviado pelo cliente
@@ -141,11 +146,12 @@ class socketTCP:
 			print "Error receiving..."
 			return
 
-		if (to_translate==""):
+		if (to_translate==""): # Quando o user fecha o socket sem ter enviado nada
 			print "Error receiving..."
 			return
 		if ( to_translate != "TRQ"):
 			print "Error in Protocol"
+			socketAccept.close()
 			sys.exit()
 
 		try:
@@ -324,7 +330,10 @@ try:
 	try:
 		args = parser.parse_args()
 	except:
-		raise Exception
+		print "FORMAT_ERROR: Wrong way to execute this program"
+		print "SOLUTION_EXAMPLE: python TRS.py -p 50000 -n tejo.ist.utl.pt -e 58052"
+		print "TRS Turning off -- System Exit"
+		sys.exit(0)
 
 	port = 59000
 	hostTCS = socket.gethostname()
@@ -376,13 +385,13 @@ except KeyboardInterrupt:
 except ValueError:
 	print "VALUE_ERROR: Invalid port given"
 	print "PORT_INT: Port must be an integer"
-
-except Exception:
-	print "FORMAT_ERROR: Wrong way to execute this program"
-	print "SOLUTION_EXAMPLE: python TRS.py -p 50000 -n tejo.ist.utl.pt -e 58052"
 except socket.error:
 	print "SCOKET ERROR"
 	print "Aborting...."
+
+except Exception:
+	#TODO: ver disto
+	print "Cenas"
 
 finally:
 	if(registed == 1):

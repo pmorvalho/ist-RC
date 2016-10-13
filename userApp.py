@@ -7,6 +7,7 @@ import sys
 import os
 import errno
 import time
+import argparse
 
 
 def shutApp(sock): 
@@ -51,29 +52,31 @@ def file_trslt():
 	#TODO: isto^
 	return
 
+#Parse dos comandos do terminal###########################
+parser = argparse.ArgumentParser()
+
+parser.add_argument("-p", help="TRS port", type=int)
+parser.add_argument("-n", help="TRS host")
+
+try:
+	args = parser.parse_args()
+except:
+	print "FORMAT_ERROR: Wrong way to execute this program"
+	print "SOLUTION_EXAMPLE: python userApp.py -p 58052 -n tejo.ist.utl.pt"
+	print "user Turning off -- System Exit"
+	sys.exit(0)
+
+host = socket.gethostname()
+port = 58052
+
+if args.p:
+	port = args.p
+
+if args.n:
+	host = args.n
+##########################################################
+
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
-if (len(sys.argv) == 3):
-	if (sys.argv[1] == "-n"):
-		host = sys.argv[2]
-		port = 58052
-	elif (sys.argv[1] == "-p"):
-		port = eval(sys.argv[2])
-		host = socket.gethostname()
-
-elif (len(sys.argv) == 5):
-	if (sys.argv[1] == "-n"):
-		host = sys.argv[2]
-		if(sys.argv[3] == "-p"):
-			port = eval(sys.argv[4])
-	elif (sys.argv[1] == "-p"):
-		port = eval(sys.argv[2])
-		if(sys.argv[3] == "-n"):
-			host = sys.argv[4]
-
-else:
-	host = socket.gethostname()
-	port = 58052
 
 address = (host, port)
 

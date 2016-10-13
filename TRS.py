@@ -8,6 +8,7 @@ import sys
 import os
 import math
 import errno
+import argparse
 
 # Classe do socket que faz a comunicacao entre o user e o TRS
 class socketTCP:
@@ -281,139 +282,6 @@ class socketUDP:
 	def getServer(self):
 		return self.server
 
-def verify_input_len8(vec): #funcao que verifica os parametros de entrada quando o sys.argv tem comprimento 8
-	# verifica se -p (int) -n (string) -e (int) ou de uma ordem trocada
-	if ( (vec[2]=="-p") and (type(eval(vec[3]))==int) ):
-		port = eval(vec[3])
-		if ( (vec[4]=="-n") and (type(vec[5])==str) ):
-			hostTCS = vec[5]
-			if ( (vec[6]=="-e") and (type(eval(vec[7]))==int) ):
-				portTCS = eval(vec[7])
-				return port, portTCS, hostTCS
-			else:
-				raise Exception
-		else:
-			raise Exception
-	elif( (vec[2]=="-p") and (type(eval(vec[3]))==int) ):
-		port = eval(vec[3])
-		if ( (vec[4]=="-e") and (type(eval(vec[5]))==int) ):
-			portTCS = eval(vec[5])
-			if ( (vec[6]=="-n") and (type(vec[7])==str) ):
-				hostTCS = vec[7]
-				return port, portTCS, hostTCS
-			else:
-				raise Exception
-		else:
-			raise Exception
-	elif( (vec[2]=="-n") and (type(vec[3])==str) ):
-		hostTCS = vec[3]
-		if ( (vec[4]=="-p") and (type(eval(vec[5]))==int) ):
-			port = eval(vec[5])
-			if ( (vec[6]=="-e") and (type(eval(vec[7]))==int) ):
-				portTCS = eval(vec[7])
-				return port, portTCS, hostTCS
-			else:
-				raise Exception
-		else:
-			raise Exception
-	elif( (vec[2]=="-n") and (type(vec[3])==str) ):
-		hostTCS = vec[3]
-		if ( (vec[4]=="-e") and (type(eval(vec[5]))==int) ):
-			portTCS = eval(vec[5])
-			if ( (vec[6]=="-p") and (type(eval(vec[7]))==int) ):
-				port = eval(vec[7])
-				return port, portTCS, hostTCS
-			else:
-				raise Exception
-		else:
-			raise Exception
-	elif( (vec[2]=="-e") and (type(eval(vec[3]))==int) ):
-		portTCS = eval(vec[3])
-		if ( (vec[4]=="-p") and (type(eval(vec[5]))==int) ):
-			port = eval(vec[5])
-			if ( (vec[6]=="-n") and (type(vec[7])==str) ):
-				hostTCS = vec[7]
-				return port, portTCS, hostTCS
-			else:
-				raise Exception
-		else:
-			raise Exception
-	elif( (vec[2]=="-e") and (type(eval(vec[3]))==int) ):
-		portTCS = eval(vec[3])
-		if ( (vec[4]=="-n") and (type(vec[5])==str) ):
-			hostTCS = vec[5]
-			if ( (vec[6]=="-p") and (type(eval(vec[7]))==int) ):
-				port = eval(vec[7])
-				return port, portTCS, hostTCS
-			else:
-				raise Exception
-		else:
-			raise Exception
-	else:
-		raise Exception
-
-def verify_input_len6(vec):  #funcao que verifica os parametros de entrada quando o sys.argv tem comprimento 6
-	# verifica se -p (int) -n (string) -e (int) ou de uma ordem trocada
-	if ( (vec[2]=="-p") and (type(eval(vec[3]))==int) ):
-		port = eval(vec[3])
-		if ( (vec[4]=="-n") and (type(vec[5])==str) ):
-			hostTCS = vec[5]
-			portTCS = 58052
-			return port, portTCS, hostTCS
-		elif ( (vec[4]=="-e") and (type(eval(vec[5]))==int) ):
-			portTCS = eval(vec[5])
-			hostTCS = socket.gethostname()
-			return port, portTCS, hostTCS
-		else:
-			raise Exception
-	elif( (vec[2]=="-n") and (type(vec[3])==str) ):
-		hostTCS = vec[3]
-		if ( (vec[4]=="-p") and (type(eval(vec[5]))==int) ):
-			port = eval(vec[5])
-			portTCS = 58052
-			return port, portTCS, hostTCS
-		elif ( (vec[4]=="-e") and (type(eval(vec[5]))==int) ):
-			portTCS = eval(vec[5])
-			port = 59000
-			return port, portTCS, hostTCS
-		else:
-			raise Exception
-	elif( (vec[2]=="-e") and (type(eval(vec[3]))==int) ):
-		portTCS = eval(vec[3])
-		if ( (vec[4]=="-p") and (type(eval(vec[5]))==int) ):
-			port = eval(vec[5])
-			hostTCS = socket.gethostname()
-			return port, portTCS, hostTCS
-		elif ( (vec[4]=="-n") and (type(vec[5])==str) ):
-			hostTCS = vec[5]
-			port = 59000
-			return port, portTCS, hostTCS
-		else:
-			raise Exception
-	else:
-		raise Exception
-
-def verify_input_len4(vec): #funcao que verifica os parametros de entrada quando o sys.argv tem comprimento 4
-	# verifica se -p (int) ou -n (string) ou  -e (int)
-	if ( (vec[2]=="-p") and (type(eval(vec[3]))==int) ):
-		port = eval(vec[3])
-		hostTCS = socket.gethostname()
-		portTCS = 58052
-		return port, portTCS, hostTCS
-	elif( (vec[2]=="-n") and (type(vec[3])==str) ):
-		hostTCS = vec[3]
-		port = 59000
-		portTCS = 58052
-		return port, portTCS, hostTCS
-	elif( (vec[2]=="-e") and (type(eval(vec[3]))==int) ):
-		portTCS = eval(vec[3])
-		port = 59000
-		hostTCS = socket.gethostname()
-		return port, portTCS, hostTCS
-	else:
-		raise Exception
-
-
 def deal_with_files(dict_words, dict_files):
 #  funcao que poe em dicionarios as palavras e ficheiros que podem ser traduzidos
 	lang_file = open(sockUdp.language + "/text_translation.txt","r")
@@ -444,18 +312,36 @@ def deal_with_files(dict_words, dict_files):
 try:
 # trata do input
 	registed = 0
-	if (len(sys.argv) == 8):
-		port, portTCS, hostTCS = verify_input_len8(sys.argv)
-	elif (len(sys.argv) == 6):
-		port, portTCS, hostTCS = verify_input_len6(sys.argv)
-	elif (len(sys.argv) == 4):
-		port, portTCS, hostTCS = verify_input_len4(sys.argv)
-	elif (len(sys.argv) == 2):
-		port = 59000
-		hostTCS = socket.gethostname()
-		portTCS = 58052
-	else:
-		raise Exception
+
+	#Parse dos comandos do terminal###########################
+	parser = argparse.ArgumentParser()
+
+	parser.add_argument("lang", help="TRS language")
+	parser.add_argument("-p", help="TRS port", type=int)
+	parser.add_argument("-n", help="TCS host")
+	parser.add_argument("-e", help="TCS port", type=int)
+
+	try:
+		args = parser.parse_args()
+	except:
+		print "FORMAT_ERROR: Wrong way to execute this program"
+		print "SOLUTION_EXAMPLE: python userApp.py -p 58052 -n tejo.ist.utl.pt"
+		print "user Turning off -- System Exit"
+		sys.exit(0)
+
+	port = 59000
+	hostTCS = socket.gethostname()
+	portTCS = 58052
+
+	if args.p:
+		port = args.p
+
+	if args.n:
+		hostTCS = args.n
+
+	if args.e:
+		portTCS = args.e
+	##########################################################
 
 	sockUdp = socketUDP(hostTCS, portTCS, sys.argv[1]) # socket UDP de contacto com o TCS
 	try:

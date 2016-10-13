@@ -55,8 +55,8 @@ def file_trslt():
 #Parse dos comandos do terminal###########################
 parser = argparse.ArgumentParser()
 
-parser.add_argument("-p", help="TRS port", type=int)
-parser.add_argument("-n", help="TRS host")
+parser.add_argument("-p", help="TCS port", type=int)
+parser.add_argument("-n", help="TCS host")
 
 try:
 	args = parser.parse_args()

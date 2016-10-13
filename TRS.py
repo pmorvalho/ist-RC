@@ -265,10 +265,11 @@ class socketUDP:
 				return
 		print "Waiting for unregistration confirmation from TCS..."
 		try:
+			self.server.settimeout(10)
 			reply = self.server.recvfrom(1024) #resposta do TCS
 		except:
-			print "Error receiving..."
-			raise senderror
+			print "Error receiving... TCS does not respond. Aborting. Exiting..."
+			sys.exit("TRS Turning off -- System Exit")
 		if (reply[0] == "SRR NOK\n"): # Erro do TCS
 			print "Cannot unregister. Exiting..."
 			self.server.close()

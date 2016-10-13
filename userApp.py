@@ -143,7 +143,7 @@ while(1):
 
 			rep = reply.split(" ")
 
-			if (len(rep) != 3):
+			if (len(rep) != 3 or len(rep) != 2):
 				print "Protocol error in message received from TCS. Exiting...\n"
 				shutApp(s)
 
@@ -151,12 +151,12 @@ while(1):
 				print "Wrong message received from TCS\n"
 				shutApp(s)
 
-			if (rep[1] == "EOF"):
+			if (rep[1] == "EOF\n"):
 				print "Translation request could not be completed\n"
 				continue
 
-			elif (rep[1] == "ERR"):
-				print "Pedido mal formulado\n"
+			elif (rep[1] == "ERR\n"):
+				print "User request is corrupted\n"
 				continue
 
 			#TODO: mandar try aqui

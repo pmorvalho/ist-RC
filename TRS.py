@@ -70,13 +70,20 @@ class socketTCP:
 				print "Translation file created"
 
 			recv_file = open(l + "/" + fname,"wb+")
-
-			while (fsize > 0):
-				data = socketAccept.recv(256)
-				fsize -= len(data)
-				if (fsize <= 0 and data[-1] == "\n"):
-					data = data[:-1]
-				recv_file.write(data)
+			try:
+				while (fsize > 0):
+					socketAccept.settimeout(10)
+					data = socketAccept.recv(256)
+					fsize -= len(data)
+					if (fsize <= 0 and data[-1] == "\n"):
+						data = data[:-1]
+					elif(fsize <= 0 and data[-1] != "\n"):
+						print "File size is too small. Protocol Error! Exiting!"
+						raise senderror
+					recv_file.write(data)
+			except:
+				print "Error receiving. Probably file size is wrong. Protocol error! Exiting"
+				raise senderror
 
 			recv_file.close()
 		except:
@@ -133,14 +140,18 @@ class socketTCP:
 			print "Error receiving..."
 			return
 
+		if (to_translate==""):
+			print "Error receiving..."
+			return
 		if ( to_translate != "TRQ"):
-			print "ERROR in Protocol"
+			print "Error in Protocol"
 			sys.exit()
 
 		try:
 			to_translate = socketAccept.recv(3) # le os 3 bytes seguintes da mensagem
 		except:
 			print "Error receiving..."
+			raise senderror
 			return
 
 		if ( to_translate == " t " ):
@@ -150,6 +161,7 @@ class socketTCP:
 				transl = self.text_translation(to_translate, word_dictionary) # chama a funcao de traducao
 			except:
 				print "Error receiving..."
+				raise senderror
 				return
 
 			try:
@@ -264,6 +276,9 @@ class socketUDP:
 
 		print "TRS successfully unregistered. Exiting..."
 		self.server.close()
+
+	def getServer(self):
+		return self.server
 
 def verify_input_len8(vec): #funcao que verifica os parametros de entrada quando o sys.argv tem comprimento 8
 	# verifica se -p (int) -n (string) -e (int) ou de uma ordem trocada
@@ -442,7 +457,13 @@ try:
 		raise Exception
 
 	sockUdp = socketUDP(hostTCS, portTCS, sys.argv[1]) # socket UDP de contacto com o TCS
-	sockUdp.register(port) # regista o TRS no TCS
+	try:
+		sockUdp.getServer().settimeout(10)
+		sockUdp.register(port) # regista o TRS no TCS
+	except:
+		print "TRS does not respond. Please try to initiate TRS again"
+		sys.exit("TRS Turning off -- System Exit")
+
 	registed = 1; #flag de estar registado
 	print ""
 

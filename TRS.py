@@ -324,10 +324,7 @@ try:
 	try:
 		args = parser.parse_args()
 	except:
-		print "FORMAT_ERROR: Wrong way to execute this program"
-		print "SOLUTION_EXAMPLE: python userApp.py -p 58052 -n tejo.ist.utl.pt"
-		print "user Turning off -- System Exit"
-		sys.exit(0)
+		raise Exception
 
 	port = 59000
 	hostTCS = socket.gethostname()

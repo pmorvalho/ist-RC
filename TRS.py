@@ -150,7 +150,8 @@ class socketTCP:
 
 			try:
 				socketAccept.send(transl) # envia a traducao da(s) palavra(s)
-				print "Translation sent!"
+				if(transl!="TRR NTA"):
+					print "Translation sent!"
 			except socket.error as senderror:
 				if(senderror.errno != errno.ECONNREFUSED):
 					raise senderror
@@ -177,8 +178,7 @@ class socketTCP:
 			if (filename in file_dictionary):
 				print filename + "--->" + file_dictionary[filename]
 				self.send_file(file_dictionary, filename, lang) # envia o ficheiro de traducao
-				if(transl!="TRR NTA"):
-					print "Translation sent!"
+				print "Translation sent!"
 			else: #quando o ficheiro nao tem traducao no sistema
 				socketAccept.send("TRR NTA\n")
 				print "Translation not found!"

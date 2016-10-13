@@ -56,10 +56,10 @@ class socketServer:
 
 
 		try:
-			self.server.settimeout(20.0)#Este timeout serve apenas para o utilizador saber que estamos vivos
+			self.server.settimeout(300.0)#Este timeout serve apenas para o utilizador saber que estamos vivos
 			msg, addr = self.server.recvfrom(1024)#Rececao de uma mensagem de no maximo 1024 bytes
 		except Exception:
-			print "CONN_TIMEOUT: Just waited 20.0 seconds for a connection and didn't get one"
+			print "CONN_TIMEOUT: Just waited 5 minutes for a connection and didn't get one"
 			print "CONN_RETRY: Retrying to get connection"
 			return#Como existe um loop que esta sempre a chamar o contact a comunicacao e feita novamente
 

@@ -64,11 +64,14 @@ class socketTCP:
 
 			# cria um ficheiro para guardar os bytes recebidos do ficheiro que esta a ser traduzido
 			recv_file = open(l + "/" + fname,"wb+")
+			recv_file = open(l + "/" + fname,"wb+")
 
 			while (fsize > 0):
 				data = socketAccept.recv(256)
-				recv_file.write(data)
 				fsize -= len(data)
+				if (fsize <= 0 and data[-1] == "\n"):
+					data = data[:-1]
+				recv_file.write(data)
 
 			recv_file.close()
 		except:

@@ -406,6 +406,7 @@ while(1):
 				filesize = eval(filesize)
 
 				recv_file = open("translation_" + filename,"wb+")
+				recv_file = open("translation_" + filename,"wb+")
 
 				while (filesize > 0):
 					try:

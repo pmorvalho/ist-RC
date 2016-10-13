@@ -10,11 +10,12 @@ import time
 import argparse
 
 
-def shutApp(sock): 
+def shutApp(sock):
 	sock.close()
 	sys.exit("Thank you! Come again")
 
-def list_languages(sock,lang):
+def list_languages(sock):
+	lang = []
 	try:
 		sock.settimeout(5)
 		d = sock.recvfrom(2048)
@@ -41,8 +42,10 @@ def list_languages(sock,lang):
 	else:
 		for i in range(eval(rep[1])):
 			print str(i+1) + " - " + rep[i+2]
-			
+
 		lang += rep[2:-1] + [rep[-1][:-1]]
+
+	return lang
 
 
 #Parse dos comandos do terminal###########################
@@ -97,28 +100,28 @@ while(1):
 			print "Exiting..."
 			shutApp(s)
 
-		list_languages(s,languages)
+		languages = list_languages(s)
 
 	elif (command[:8] == "request "):
-		
+
 		comm = command.split(" ") #lista com os varios argumentos do comando
-		
-		try: 
+
+		try:
 			lang = eval(comm[1]) - 1
 		except:
 			print "You did not specify a valid language index\n"
 			continue
-		
+
 		if (len(languages) == 0):
 			print "No languages. Try using 'list' first\n"
-			
+
 		elif (lang >= len(languages) or lang < 0):
 			print "Language index out of bounds\n"
-			
+
 		else: #Envia mensagem ao TCS
-			
+
 			msg = "UNQ " + languages[lang] + "\n"
-			
+
 			try:
 				s.sendto(msg, address)
 			except socket.error as senderror:
@@ -165,7 +168,7 @@ while(1):
 			portTRS = eval(rep[2])
 			hostTRS = socket.gethostbyaddr(ipTRS)[0]
 			addressTRS = (hostTRS,portTRS)
-			
+
 			socketTRS = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 			try:
@@ -248,7 +251,7 @@ while(1):
 					print "Incorrect way to translate file. Try translating one file at a time\n"
 					socketTRS.close()
 					continue
-				
+
 				try:
 					msg = "TRQ f " + comm[3] + " " + str(os.stat(comm[3]).st_size) + " "
 				except:
@@ -266,12 +269,12 @@ while(1):
 					print "Exiting..."
 					socketTRS.close()
 					shutApp(s)
-				
+
 				file_to_trl = open(comm[3],"rb")
 
 				#enviar ficheiro
 				print "Uploading file to server..."
-				
+
 				data = file_to_trl.read(256)
 
 				while (data):
@@ -290,7 +293,7 @@ while(1):
 					data = file_to_trl.read(256)
 
 				file_to_trl.close()
-				
+
 				try:
 					socketTRS.send("\n")
 				except socket.error as senderror:
@@ -321,7 +324,7 @@ while(1):
 					print "Protocol error. Expecting file translation. Exiting..."
 					socketTRS.close()
 					shutApp(s)
-				
+
 				try:
 					socketTRS.settimeout(5)
 					translated = socketTRS.recv(3)
@@ -335,7 +338,7 @@ while(1):
 					shutApp(s)
 
 				if (translated == " NT"):
-					
+
 					try:
 						socketTRS.settimeout(5)
 						translated = socketTRS.recv(1)
@@ -358,7 +361,7 @@ while(1):
 						shutApp(s)
 
 				if (translated == " ER"):
-					
+
 					try:
 						socketTRS.settimeout(5)
 						translated = socketTRS.recv(1)
@@ -471,7 +474,7 @@ while(1):
 						print "SOCKET_ERROR: Error receiving file from TRS. Exiting..."
 						socketTRS.close()
 						shutApp(s)
-					
+
 					filesize -= len(data)
 					if (filesize <= 0 and data[-1] == "\n"): #remover \n do ficheiro enviado
 						data = data[:-1]
@@ -488,11 +491,9 @@ while(1):
 
 
 			socketTRS.close()
-		
+
 	elif (command == "exit"):
 		shutApp(s)
 
 	else:
 		print "Command not found\n"
-
-

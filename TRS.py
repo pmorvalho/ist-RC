@@ -63,7 +63,12 @@ class socketTCP:
 			fsize = eval(fsize)
 
 			# cria um ficheiro para guardar os bytes recebidos do ficheiro que esta a ser traduzido
-			recv_file = open(l + "/" + fname,"wb+")
+			try:
+				os.remove(l + "/" + fname)
+				print "File on directory overwritten"
+			except:
+				print "Translation file created"
+				
 			recv_file = open(l + "/" + fname,"wb+")
 
 			while (fsize > 0):

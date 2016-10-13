@@ -44,7 +44,7 @@ class socketTCP:
 					translation += " " + dict_words[to_translate_aux[i]]
 			translation += "\n"
 		else:
-			translation = "TRR NTA"
+			translation = "TRR NTA\n"
 		return translation
 
 	# funcao que trata de receber o ficheiro com o nome fname, enviado pelo cliente
@@ -154,7 +154,7 @@ class socketTCP:
 
 			try:
 				socketAccept.send(transl) # envia a traducao da(s) palavra(s)
-				if(transl!="TRR NTA"):
+				if(transl!="TRR NTA\n"):
 					print "Translation sent!"
 			except socket.error as senderror:
 				if(senderror.errno != errno.ECONNREFUSED):

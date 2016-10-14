@@ -1,4 +1,4 @@
-# Projeto da cadeira de Redes de Computadores	
+# Projeto de Redes de Computadores
 
 
 ## Este projeto foi desenvolvido por:
@@ -7,50 +7,34 @@
 	- João Silveira, nº 80789, Curso: LEIC-A
 	- Pedro Orvalho, nº 81151, Curso: LEIC-A
 
-# Ficheiros (código):
-
-### TCS.py
-
-Servidor que aceita pedidos dos utilizadores e comunica com os servidores TRS por UDP.
-
-### TRS.py
-
-Servidor que faz a tradução das palavras. Comunica com os utilizadores por TCP e comunica com o servidor TCS por UDP. Podem existir vários servidores TRS.
-
-### userApp.py
-
-Aplicação pela qual o utilizador faz os pedidos de tradução.
-
+Este projecto foi desenvolvido de acordo com o enunciado em português com a data 27/09/2016
 
 # Como correr:
 
 ### 	TCS server:
 
-
-Para começar o TCS (TCSport é o porto onde é feita a comunicação):
+Para correr o TCS :
 ```
-% python TCS.py -p TCSport
+python TCS.py -p TCSport
 ```
 
 ###		TRS Server:
 
-Para começar o TRS (LANGUAGE é a linguagem que este servidor traduz, TRSport é o porto do servidor TRS, TCSname é o endereço do TCS, TCSport é o porto de comunicação com o TCS):
+Para correr o TRS:
 
 ```
-
-% python TRS.py LANGUAGE -p TRSport -n TCSname -e TCSport
+python TRS.py LANGUAGE -p TRSport -n TCSname -e TCSport
 ```
+
+LANGUAGE é o nome da linguagem e da pasta onde se encontram os ficheiros para tradução e os dicionários da linguagem respectiva, e estes têm de ser colocados nesta pasta.
 
 ### 	User App:
 
-Para começar a aplicação do utilizador (TCSname é o nome do servidor TCS, TCSport é o porto do servidor TCS):
+Para correr a aplicação utilizador:
 
 ```
 
-% python userApp.py -n TCSname -p TCSport
+python userApp.py -n TCSname -p TCSport
 ```
 
-Nota: Todos os parâmetros que são precedidos de -p, -n ou -e são opcionais, ou seja, podem ser lançadas as aplicações sem a existência dos parâmetros.
-
-
-ad
+Nota: Os parâmetros -p, -n ou -e são opcionais.

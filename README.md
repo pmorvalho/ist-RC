@@ -34,7 +34,7 @@ Para começar o TCS (TCSport é o porto onde é feita a comunicação):
 
 ###		TRS Server:
 
-Para começar o TRS (LANGUAGE é a linguagem que este servidor traduz, TRSport é o porto do servidor TRS, TCSname é o endereço do TCS, TCSPORT é o porto de conexão com o TCS):
+Para começar o TRS (LANGUAGE é a linguagem que este servidor traduz, TRSport é o porto do servidor TRS, TCSname é o endereço do TCS, TCSport é o porto de conexão com o TCS):
 
 ```
 
@@ -53,3 +53,4 @@ Para começar a aplicação do utilizador (TCSname é o nome do servidor TCS, TC
 Nota: Todos os parâmetros que são precedidos de -p, -n ou -e são opcionais, ou seja, podem ser lançadas as aplicações sem a existência dos parâmetros.
 
 
+ad

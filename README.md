@@ -15,7 +15,7 @@ Servidor que aceita pedidos dos utilizadores e comunica com os servidores TRS po
 
 ### TRS.py
 
-Servidor que faz a produção das palavras. Comunica com os utilizadores por TCP e comunica com o servidor TCS por UDP. Podem existir vários servidores TRS.
+Servidor que faz a tradução das palavras. Comunica com os utilizadores por TCP e comunica com o servidor TCS por UDP. Podem existir vários servidores TRS.
 
 ### userApp.py
 
@@ -34,7 +34,7 @@ Para começar o TCS (TCSport é o porto onde é feita a comunicação):
 
 ###		TRS Server:
 
-Para começar o TRS (LANGUAGE é a linguagem que este servidor traduz, TRSport é o porto do servidor TRS, TCSname é o endereço do TCS, TCSport é o porto de conexão com o TCS):
+Para começar o TRS (LANGUAGE é a linguagem que este servidor traduz, TRSport é o porto do servidor TRS, TCSname é o endereço do TCS, TCSport é o porto de comunicação com o TCS):
 
 ```
 

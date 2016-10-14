@@ -1,12 +1,12 @@
 #!bin/usr/python
 
-"""
-	Este e o codigo do Server
-	Estudantes que participaram no desenvolvimento deste projeto:
-		David Calhas 
-		Joao Silveira
-		Pedro Orvalho
-"""
+# Este projeto foi desenvolvido por:
+# Grupo 52:
+# - David Calhas, no. 80980, Curso: LEIC-A
+# - Joao Silveira, no. 80789, Curso: LEIC-A
+# - Pedro Orvalho, no. 81151, Curso: LEIC-A
+
+#TCSs
 
 
 #Imports made for the execution of this application
@@ -310,11 +310,3 @@ except socket.gaierror:#Trata erro na chamada de sistema gethostname
 finally:#Este pedaco de codigo e sempre executado
 	print "TCS Turning off -- System Exit"
 	sys.exit(0)
-
-
-
-
-# Italiano 123.345.566. 50000
-# Alemao 123.345.566. 50000
-# Ingles 123.345.566. 50000
-# Frances 123.345.566. 50000

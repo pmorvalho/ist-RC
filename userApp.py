@@ -1,5 +1,11 @@
 #!bin/usr/python
 
+# Este projeto foi desenvolvido por:
+# Grupo 52:
+# - David Calhas, no. 80980, Curso: LEIC-A
+# - Joao Silveira, no. 80789, Curso: LEIC-A
+# - Pedro Orvalho, no. 81151, Curso: LEIC-A
+
 #Client
 
 import socket
@@ -9,16 +15,17 @@ import errno
 import time
 import argparse
 
-
+#Fechar a aplicacao fechando o socket
 def shutApp(sock):
 	sock.close()
 	sys.exit("Thank you! Come again")
 
+#Trata do comando list
 def list_languages(sock):
 	lang = []
 	try:
 		sock.settimeout(5)
-		d = sock.recvfrom(2048)
+		d = sock.recvfrom(2048) #recebe mensagem do TCS
 	except socket.timeout:
 		print "Socket timed out. TCS is probably down. Exiting..."
 		shutApp(s)
@@ -27,20 +34,27 @@ def list_languages(sock):
 		shutApp(s)
 
 	reply = d[0]
-	addr = d[1]
 
-	rep = reply.split(" ")
+	rep = reply.split(" ") # divide a mensagem pelos espacos
 
 	if (len(rep) < 2):
 		return
+
+	try:
+		lang_no = eval(rep[1])
+	except:
+		print "TCS message wrongly formatted. TCS is probably corrupted. Exiting..."
+		shutApp(sock)
+
 	if (rep[0] != "ULR"):
 		print "TCS reply does not comply with protocol\n"
 	elif ( rep[1] == "EOF\n" ): #caso nao haja linguagens disponiveis
 		print "No languages available\n"
-	elif (rep[1] == "ERR\n"):
+	elif (rep[1] == "ERR\n" or lang_no != len(rep[2:])):
 		print "ULQ request wrongly formatted\n"
-	else:
-		for i in range(eval(rep[1])):
+	else: # Lista as linguagens disponives
+		
+		for i in range(lang_no):
 			print str(i+1) + " - " + rep[i+2]
 
 		lang += rep[2:-1] + [rep[-1][:-1]]
@@ -78,7 +92,7 @@ address = (host, port)
 
 print(address)
 
-languages = []
+languages = [] # Lista que guarda todas as linguagens disponiveis. E atualizada com o comando 'list'
 
 while(1):
 	try:
@@ -87,8 +101,8 @@ while(1):
 		print "INPUT_ERROR: error reading input"
 		shutApp(s)
 
-	if (command == "list"):
-		msg = "ULQ\n"
+	if (command == "list"): # Comando 'list' que pedir ao TCS e depois listar as linguagens disponiveis
+		msg = "ULQ\n" # mensagem a enviar ao TCS
 
 		try:
 			s.sendto(msg, address)
@@ -100,9 +114,11 @@ while(1):
 			print "Exiting..."
 			shutApp(s)
 
-		languages = list_languages(s)
+		languages = list_languages(s) # atualiza a lista das linguagens
 
-	elif (command[:8] == "request "):
+	elif (command[:8] == "request "): 
+	# comando 'request':
+	# vai pedir o ip e porto do TRS ao TCS e pedir uma traducao ao TRS
 
 		comm = command.split(" ") #lista com os varios argumentos do comando
 
@@ -118,7 +134,7 @@ while(1):
 		elif (lang >= len(languages) or lang < 0):
 			print "Language index out of bounds\n"
 
-		else: #Envia mensagem ao TCS
+		else: # Faz pedido do ip e porto do TRS ao TCS
 
 			msg = "UNQ " + languages[lang] + "\n"
 
@@ -134,7 +150,7 @@ while(1):
 
 			try:
 				s.settimeout(5)
-				d = s.recvfrom(1024)
+				d = s.recvfrom(1024) # Recebe resposta do TCS
 			except socket.timeout:
 				print "socket.recv timed out. TRS is probably down. Exiting..."
 				socketTRS.close()
@@ -147,6 +163,7 @@ while(1):
 
 			rep = reply.split(" ")
 
+			# Testa possiveis erros na resposta do TCS
 			if (len(rep) > 3 or len(rep) < 2):
 				print "Protocol error in message received from TCS. Exiting...\n"
 				shutApp(s)
@@ -163,29 +180,35 @@ while(1):
 				print "User request is corrupted\n"
 				continue
 
-			#TODO: mandar try aqui
+			# Guarda a informacao para se ligar ao TRS que vai tratar do pedido de traducao
 			ipTRS = rep[1]
-			portTRS = eval(rep[2])
+			
+			try:
+				portTRS = eval(rep[2])
+			except:
+				print "Port specification is not an integer. TCS corrupted. Exiting..."
+				shutApp(s)
+			
 			hostTRS = socket.gethostbyaddr(ipTRS)[0]
 			addressTRS = (hostTRS,portTRS)
 
 			socketTRS = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 			try:
-				socketTRS.connect(addressTRS)
+				socketTRS.connect(addressTRS) # Estabelece ligacao TCP com o TRS
 			except socket.error as err:
 				print "SOCKET_ERROR: Failed connecting. Exiting..."
 				socketTRS.close()
 				shutApp(s)
 
 			try:
-				translation_type = comm[2]
+				translation_type = comm[2] # Guarda o tipo de traducao -> 't' ou 'f'
 			except:
 				print "Command wrongly formatted\n"
 				socketTRS.close()
 				continue
 
-			if (comm[2] == "t"):
+			if (comm[2] == "t"): # Traducao de texto
 				nWords = len(comm[3:])
 				if (nWords == 0):
 					print "No words to translate\n"
@@ -195,10 +218,9 @@ while(1):
 				for i in range(nWords):
 					msg += " " + comm[3:][i]
 				msg += "\n"
-				#print "Sent to TRS: " + msg
 
 				try:
-					socketTRS.send(msg)
+					socketTRS.send(msg) # Envia pedido de traducao ao TRS
 
 				except socket.error as senderror:
 					if(senderror.errno != errno.ECONNREFUSED):
@@ -211,7 +233,7 @@ while(1):
 
 				try:
 					socketTRS.settimeout(5)
-					msg = socketTRS.recv(1024)
+					msg = socketTRS.recv(1024) # Recebe resposta do TRS ao pedido de traducao
 				except socket.timeout:
 					print "socket.recv timed out. TRS is probably down. Exiting..."
 					socketTRS.close()
@@ -240,19 +262,19 @@ while(1):
 
 				translation = ""
 
-				for i in range(len(msg[3:])):
+				for i in range(len(msg[3:])): # Escreve a linha com o texto traduzido
 					translation += " " + msg[3:][i]
 
 				print "\nTranslation:" , translation
 
-			elif (comm[2] == "f"):
+			elif (comm[2] == "f"): # Traducao de ficheiro
 
-				if (len(comm) > 4):
+				if (len(comm) > 4): # Quando se tenta traduzir mais que um ficheiro
 					print "Incorrect way to translate file. Try translating one file at a time\n"
 					socketTRS.close()
 					continue
 
-				try:
+				try: # Mensagem com nome e tamanho do ficheiro
 					msg = "TRQ f " + comm[3] + " " + str(os.stat(comm[3]).st_size) + " "
 				except:
 					print "File does not exist. Try a different file\n"
@@ -260,7 +282,7 @@ while(1):
 					continue
 
 				try:
-					socketTRS.send(msg)
+					socketTRS.send(msg) # Envia inicio da mensagem de pedido de traducao de ficheiro ao TRS
 				except socket.error as senderror:
 					if(senderror.errno != errno.ECONNREFUSED):
 						raise senderror
@@ -270,14 +292,14 @@ while(1):
 					socketTRS.close()
 					shutApp(s)
 
-				file_to_trl = open(comm[3],"rb")
+				file_to_trl = open(comm[3],"rb") # Abertura do ficheiro a traduzir
 
-				#enviar ficheiro
+				# Envia ficheiro
 				print "Uploading file to server..."
 
-				data = file_to_trl.read(256)
+				data = file_to_trl.read(256) # Comeca a enviar o ficheiro
 
-				while (data):
+				while (data): # Ciclo de envio do ficheiro por chunks de 256bytes de cada vez
 					try:
 						socketTRS.send(data)
 
@@ -287,6 +309,7 @@ while(1):
 						print "SOCKET_ERROR: Error sending message to TRS server: (BINARY DATA)"
 						print senderror
 						print "Exiting..."
+						file_to_trl.close()
 						socketTRS.close()
 						shutApp(s)
 
@@ -295,7 +318,7 @@ while(1):
 				file_to_trl.close()
 
 				try:
-					socketTRS.send("\n")
+					socketTRS.send("\n") # Envia o '\n' de final da mensagem
 				except socket.error as senderror:
 					if(senderror.errno != errno.ECONNREFUSED):
 						raise senderror
@@ -306,8 +329,9 @@ while(1):
 
 				print "File uploaded\n"
 
-				#recepcao do ficheiro
+				# Recepcao do ficheiro
 
+				# Vai recebendo pequenas quantidades de bytes para perceber que tipo de mensagem recebeu
 				try:
 					socketTRS.settimeout(5)
 					translated = socketTRS.recv(3)
@@ -337,7 +361,7 @@ while(1):
 					socketTRS.close()
 					shutApp(s)
 
-				if (translated == " NT"):
+				if (translated == " NT"): # Caso receba 'TRR NTA'
 
 					try:
 						socketTRS.settimeout(5)
@@ -360,7 +384,7 @@ while(1):
 						socketTRS.close()
 						shutApp(s)
 
-				if (translated == " ER"):
+				if (translated == " ER"): # Caso receba 'TRR NTA'
 
 					try:
 						socketTRS.settimeout(5)
@@ -388,7 +412,7 @@ while(1):
 					socketTRS.close()
 					shutApp(s)
 
-				#####################################################################
+				# Le o espaco que vem a seguir
 				try:
 					socketTRS.settimeout(5)
 					byte = socketTRS.recv(1)
@@ -403,6 +427,7 @@ while(1):
 
 				filename = ""
 
+				# Le byte a byte do socket para receber o filename
 				while (byte != " "):
 					filename += byte
 					try:
@@ -419,6 +444,7 @@ while(1):
 
 				print "Filename: " , filename
 
+				# Le o espaco que vem a seguir
 				try:
 					socketTRS.settimeout(5)
 					byte = socketTRS.recv(1)
@@ -433,6 +459,7 @@ while(1):
 
 				filesize = ""
 
+				# Le byte a byte do socket para receber o filesize
 				while (byte != " "):
 					filesize += byte
 					try:
@@ -449,25 +476,30 @@ while(1):
 
 				print "File size: " , filesize, " bytes"
 
+				# Inicia a recepcao do ficheiro
 				print "Downloading file..."
 
 				################################################################
 				filesize = eval(filesize)
 
-				try:
+				try: # Se o ficheiro ja existir na diretoria, e eliminado
 					os.remove("translation_" + filename)
 					print "File on directory overwritten"
 				except:
 					print "Translation file created"
 
+				# Abre ou cria o ficheiro onde vao ser guardados os dados recebidos
 				recv_file = open("translation_" + filename,"wb+")
 
-				while (filesize > 0):
+				# Le dados do socket em chunks de 256bytes ate receber o numero de bytes
+				# que e esperado receber, i.e. o indicado na mensagem
+				while (filesize >= 0):
 					try:
 						socketTRS.settimeout(5)
 						data = socketTRS.recv(256)
 					except socket.timeout:
-						print "socket.recv timed out. TRS is probably down. Exiting..."
+						print "socket.recv timed out. TRS is down or file is smaller than specified"
+						print "Exiting..."
 						socketTRS.close()
 						shutApp(s)
 					except:
@@ -476,8 +508,10 @@ while(1):
 						shutApp(s)
 
 					filesize -= len(data)
-					if (filesize <= 0 and data[-1] == "\n"): #remover \n do ficheiro enviado
+					if (filesize < 0 and data[-1] == "\n"): #remover \n do ficheiro enviado
 						data = data[:-1]
+					elif (filesize < 0 and data[-1] != "\n"):
+						print "Error receiving file. The specified size is different to received\n"
 					recv_file.write(data)
 
 				recv_file.close()

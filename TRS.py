@@ -1,6 +1,12 @@
 #!bin/usr/python
 
-#Server
+# Este projeto foi desenvolvido por:
+# Grupo 52:
+# - David Calhas, no. 80980, Curso: LEIC-A
+# - Joao Silveira, no. 80789, Curso: LEIC-A
+# - Pedro Orvalho, no. 81151, Curso: LEIC-A
+
+#TRS
 
 
 import socket

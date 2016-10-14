@@ -19,7 +19,7 @@ Servidor que faz a produção das palavras. Comunica com os utilizadores por TCP
 
 ### userApp.py
 
-Aplicacao pela qual o utilizador faz os pedidos de tradução.
+Aplicação pela qual o utilizador faz os pedidos de tradução.
 
 
 # Como correr:
@@ -27,9 +27,9 @@ Aplicacao pela qual o utilizador faz os pedidos de tradução.
 ### 	TCS server:
 
 
-Para começar o TCS (PORT é um inteiro):
+Para começar o TCS (TCSport é o porto onde é feita a comunicação):
 ```
-% python TCS.py -p PORT
+% python TCS.py -p TCSport
 ```
 
 ###		TRS Server:

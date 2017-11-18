@@ -1,5 +1,10 @@
 # Projeto de Redes de Computadores
 
+LEIC-A
+
+Redes de Computadores - º ano 2016-2017
+
+Nota: 18/20
 
 ## Este projeto foi desenvolvido por:
 

@@ -1,8 +1,10 @@
-# Projeto de Redes de Computadores
+# Redes de Computadores
 
-LEIC-A
+[IST](https://tecnico.ulisboa.pt/pt/) 
 
-Redes de Computadores - 3º ano 2016-2017
+[LEIC-A](https://fenix.tecnico.ulisboa.pt/cursos/leic-a/descricao)
+
+[Redes de Computadores](https://fenix.tecnico.ulisboa.pt/disciplinas/RC45179/2016-2017/1-semestre) - 3º ano 2016-2017
 
 Nota: 18/20
 

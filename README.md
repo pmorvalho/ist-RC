@@ -2,7 +2,7 @@
 
 LEIC-A
 
-Redes de Computadores - º ano 2016-2017
+Redes de Computadores - 3º ano 2016-2017
 
 Nota: 18/20
 

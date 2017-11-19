@@ -6,6 +6,8 @@
 
 [Redes de Computadores](https://fenix.tecnico.ulisboa.pt/disciplinas/RC45179/2016-2017/1-semestre) - 3º ano 2016-2017
 
+[Enunciado](https://github.com/pmorvalho/ist-RC/blob/master/2016_09_27_Proj_SocketProg_PT.pdf)
+
 Nota: 18/20
 
 ## Este projeto foi desenvolvido por:
